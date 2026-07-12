@@ -1,0 +1,14 @@
+# Sync (install all packages)
+```bash
+uv sync
+```
+
+# Run dev command
+```bash
+uv run uvicorn app.main:app --reload
+```
+
+# Run in prod (for later)
+```bash
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers {number}
+```
