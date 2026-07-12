@@ -1,4 +1,4 @@
-# directions:  0 is up, value in radians
+# rotations:  0 is up, value in radians
 # positions:   (0, 0) is top-left, value in pixels
 
 class Box:
@@ -7,7 +7,7 @@ class Box:
         self.size = size
 
 
-def are_colliding(box1, box2):
+def area_colliding(box1, box2):
     x1, y1 = box1.pos
     x2, y2 = box2.pos
     return not (
@@ -20,11 +20,20 @@ def are_colliding(box1, box2):
 
 
 class Player:
+    speed = 10
+
     def __init__(self, pos):
         self.hp = 100
         self.pos = pos
         self.last_shot_time = 0 # frame number at which the bullet was shot
-        self.direction = 0 
+        self.rotation = 0
+
+        self.movement = (0, 0)
+    
+    def move(self):
+        self.pos += (movement[0] * self.speed, movement[1] * self.speed)
+
+
 
 
 class Bullet:
@@ -43,8 +52,12 @@ class State:
         for i in range(player_cnt):
             self.players.append(Player((100, 100)))
 
-    def step_frame(self, player_inputs):
+    def step_frame(self):
         self.current_frame += 1
-        # TODO
 
+        for player in players:
+            player.move()
         
+        for bullet in bullets:
+            bullet.move()
+
