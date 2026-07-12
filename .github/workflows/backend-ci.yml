@@ -29,3 +29,6 @@ jobs:
 
       - name: Check syntax errors
         run: uv run python -m compileall app/
+
+      - name: Run tests
+        run: uv run pytest
