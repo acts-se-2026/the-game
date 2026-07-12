@@ -1,1 +1,194 @@
 @import "tailwindcss";
+
+:root {
+  color: #e2e8f0;
+  background: #07111f;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(37, 99, 235, 0.18), transparent 30rem),
+    #07111f;
+}
+
+button,
+canvas {
+  font: inherit;
+}
+
+.game-page {
+  width: min(100% - 2rem, 900px);
+  margin: 0 auto;
+  padding: 3rem 0;
+}
+
+.game-header,
+.game-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.game-header {
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.35rem;
+  color: #60a5fa;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  color: #f8fafc;
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
+  line-height: 0.95;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.8rem;
+  color: #bbf7d0;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 999px;
+  background: rgba(20, 83, 45, 0.25);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.status-dot,
+.legend-dot,
+.legend-block {
+  display: inline-block;
+  flex: 0 0 auto;
+}
+
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0.6rem #4ade80;
+}
+
+.game-layout {
+  align-items: stretch;
+}
+
+.arena-canvas {
+  display: block;
+  width: min(600px, 100%);
+  height: auto;
+  aspect-ratio: 1;
+  border: 1px solid #3b526b;
+  border-radius: 0.8rem;
+  background: #122032;
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.3);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.arena-info {
+  align-self: center;
+  width: 210px;
+  padding: 1.4rem;
+  border: 1px solid rgba(100, 116, 139, 0.4);
+  border-radius: 0.8rem;
+  background: rgba(15, 23, 42, 0.74);
+}
+
+.arena-info h2 {
+  margin-bottom: 0.65rem;
+  color: #f8fafc;
+  font-size: 1.05rem;
+}
+
+.arena-info p {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.legend {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem 0;
+  border-block: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+
+.legend-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid #f8fafc;
+  border-radius: 50%;
+}
+
+.legend-dot.you {
+  background: #60a5fa;
+}
+
+.legend-dot.enemy {
+  background: #fb7185;
+}
+
+.legend-block {
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid #64748b;
+  background: #334155;
+}
+
+.tip {
+  margin: 1rem 0 0;
+}
+
+@media (max-width: 760px) {
+  .game-page {
+    padding-block: 1.5rem;
+  }
+
+  .game-layout {
+    flex-direction: column;
+  }
+
+  .arena-info {
+    width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .game-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
