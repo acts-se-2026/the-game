@@ -1,4 +1,4 @@
 
 def test_test_endpoint(client):
-    response = client.get("/test")
+    response = client.get("/api/test")
     assert response.status_code == 200
