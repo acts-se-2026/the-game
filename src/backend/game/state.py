@@ -46,15 +46,28 @@ class Player:
 class Bullet:
     speed = 20
 
+    next_id = 0
+
     def __init__(self, pos):
         self.pos = pos
         self.movement_dir = Vec2(0, 0)
+        self.id = Bullet.next_id
+        Bullet.next_id += 1
 
         self.box = Box(self.pos, Vec2(5, 5))
 
     #here you will only change the movement direction vector and the position will update in step_frame
     def set_movement_dir(self, movement_dir):
         self.movement_dir = movement_dir.normalized_or_zero()
+
+
+
+class StateDiff:
+    def __init__(self, players, removed_bullet_ids, new_bullets_appended):
+        self.removed_bullet_ids = removed_bullet_ids # list of int
+        self.new_bullets_appended = new_bullets_appended # list of Bullet
+        self.players = players # list of Player
+
 
 
 class State:
@@ -72,6 +85,9 @@ class State:
         for player in self.players:
             if player.uuid == player_uuid:
                 player.set_movement_dir(direction)
+
+    def try_shoot_player_bullet(self, player_uuid, direction):
+        pass # TODO
         
     # Called from outside
     def step_frame(self):
@@ -86,7 +102,7 @@ class State:
         self.players = [player for player in self.players if player.hp > 0]
 
         
-        killed_bullets = set()            
+        removed_bullet_ids = set()            
         for bullet in self.bullets:
             #change position
             bullet.pos += bullet.movement_dir * bullet.speed
@@ -96,15 +112,16 @@ class State:
             for player in self.players:
                 if Box.area_colliding(player.box, bullet.box):
                     player.hit()
-                    killed_bullets.add(bullet)
+                    removed_bullet_ids.add(bullet.id)
                     break # this bullet cannot hit any other players
 
         # remove killed bullets
-        self.bullets = [bullet for bullet in self.bullets if bullet in killed_bullets]
-
+        self.bullets = [bullet for bullet in self.bullets if bullet.id in removed_bullet_ids]
 
         if len(self.players) <= 1:
             self.end_game()
+
+        return StateDiff(players=self.players, removed_bullet_ids=list(removed_bullet_ids), new_bullets_appended=[])
         
 
     def end_game(self):
