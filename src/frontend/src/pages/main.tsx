@@ -7,7 +7,7 @@ import { ARENA_SIZE, type ArenaState } from '../game/types'
 import { useKeyboardMovement } from '../game/useKeyboardMovement'
 
 const PLAYER_RADIUS = 18
-const PREVIEW_SPEED = 220
+const PREVIEW_SPEED = 200
 
 function updateLocalPlayer(
   state: ArenaState,
