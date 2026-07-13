@@ -113,11 +113,20 @@ export default function ArenaCanvas({ state, onAim, onShoot }: ArenaCanvasProps)
     void startPixi()
     return () => {
       isMounted = false
-      appRef.current = null
-      worldRef.current = null
-      application.destroy(true)
+      if (appRef.current === application) {
+        appRef.current = null
+        worldRef.current = null
+        application.destroy(true)
+      }
     }
   }, [])
 
-  return <div ref={hostRef} className="arena-canvas" role="application" aria-label="Game arena" />
+  return (
+    <div
+      ref={hostRef}
+      className="aspect-square w-full max-w-[600px] overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/30 [&_canvas]:block [&_canvas]:size-full [&_canvas]:cursor-crosshair [&_canvas]:touch-none"
+      role="application"
+      aria-label="Game arena"
+    />
+  )
 }
