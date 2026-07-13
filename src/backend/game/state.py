@@ -1,7 +1,7 @@
-from vector import Vec2
+from game.vector import Vec2
 
 # rotations:  0 is up, value in radians
-# positions:   (0, 0) is top-left, value in pixels
+# positions:  (0, 0) is top-left, value in pixels
 
 class Box:
     def __init__(self, pos, size):
@@ -28,14 +28,10 @@ class Player:
         self.pos = pos
         self.last_shot_time = 0 # frame number at which the bullet was shot
         self.rotation = 0
-        self.alive = True
 
         self.box = Box(self.pos, 10)
 
         self.movement_dir = Vec2(0, 0)
-    
-    def kill(self):
-        self.alive = False
     
     #here you will only change the movement direction vector and the position will update in step_frame
     def set_movement_dir(self, movement_dir):
@@ -50,9 +46,13 @@ class Player:
 class Bullet:
     speed = 20
 
+    next_id = 0
+
     def __init__(self, pos):
         self.pos = pos
         self.movement_dir = Vec2(0, 0)
+        self.id = Bullet.next_id
+        Bullet.next_id += 1
 
         self.box = Box(self.pos, Vec2(5, 5))
 
@@ -60,9 +60,14 @@ class Bullet:
     def set_movement_dir(self, movement_dir):
         self.movement_dir = movement_dir.normalized_or_zero()
 
-    def kill(self):
-        # TODO: actually delete the bullet
-        self.position = Vec2(999999,999999)
+
+
+class StateDiff:
+    def __init__(self, players, removed_bullet_ids, new_bullets_appended):
+        self.removed_bullet_ids = removed_bullet_ids # list of int
+        self.new_bullets_appended = new_bullets_appended # list of Bullet
+        self.players = players # list of Player
+
 
 
 class State:
@@ -80,22 +85,24 @@ class State:
         for player in self.players:
             if player.uuid == player_uuid:
                 player.set_movement_dir(direction)
+
+    def try_shoot_player_bullet(self, player_uuid, direction):
+        pass # TODO
         
     # Called from outside
     def step_frame(self):
         self.current_frame += 1
 
-        player_cnt = 0
         for player in self.players:
             #change position
             player.pos += player.speed * player.movement_dir
             player.box.pos = player.pos
-
-            #check number of players alive
-            if player.alive:
-                player_cnt+=1
-            
         
+        # remove dead players
+        self.players = [player for player in self.players if player.hp > 0]
+
+        
+        removed_bullet_ids = set()            
         for bullet in self.bullets:
             #change position
             bullet.pos += bullet.movement_dir * bullet.speed
@@ -105,11 +112,16 @@ class State:
             for player in self.players:
                 if Box.area_colliding(player.box, bullet.box):
                     player.hit()
-                    bullet.kill()
+                    removed_bullet_ids.add(bullet.id)
+                    break # this bullet cannot hit any other players
 
+        # remove killed bullets
+        self.bullets = [bullet for bullet in self.bullets if bullet.id in removed_bullet_ids]
 
-        if player_cnt <= 1:
+        if len(self.players) <= 1:
             self.end_game()
+
+        return StateDiff(players=self.players, removed_bullet_ids=list(removed_bullet_ids), new_bullets_appended=[])
         
 
     def end_game(self):
