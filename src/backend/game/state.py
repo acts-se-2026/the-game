@@ -7,16 +7,16 @@ class Box:
         self.size = size
 
 
-def area_colliding(box1, box2):
-    x1, y1 = box1.pos
-    x2, y2 = box2.pos
-    return not (
-        (x1 + box1.size[0] < x2) # x1 is too much to the left, so it doesn't collide
-        or (x1 > x2 + box2.size[0]) # x1 is too much to the right, so it doesn't collide
-    ) or (
-        (y1 + box1.size[1] < y2) # y1 is too far down, so it doesn't collide
-        or (y1 > y2 + box2.size[1]) # y1 is too far up, so it doesn't collide
-    )
+    def area_colliding(box1, box2):
+        x1, y1 = box1.pos
+        x2, y2 = box2.pos
+        return not (
+            (x1 + box1.size[0] < x2) # x1 is too much to the left, so it doesn't collide
+            or (x1 > x2 + box2.size[0]) # x1 is too much to the right, so it doesn't collide
+        ) or (
+            (y1 + box1.size[1] < y2) # y1 is too far down, so it doesn't collide
+            or (y1 > y2 + box2.size[1]) # y1 is too far up, so it doesn't collide
+        )
 
 
 class Player:
@@ -27,8 +27,12 @@ class Player:
         self.pos = pos
         self.last_shot_time = 0 # frame number at which the bullet was shot
         self.rotation = 0
+        self.alive = True
 
         self.movement = (0, 0)
+    
+    def kill(self):
+        self.alive = False
     
     def move(self):
         self.pos += (movement[0] * self.speed, movement[1] * self.speed)
@@ -37,9 +41,11 @@ class Player:
 
 
 class Bullet:
+    speed = 20
+
     def __init__(self, pos):
         self.pos = pos
-        self.direction = 0
+        self.movement = (0, 0)
 
 
 class State:
@@ -51,13 +57,38 @@ class State:
         self.players = []
         for i in range(player_cnt):
             self.players.append(Player((100, 100)))
+    
+    def end_game(self):
+        pass
 
     def step_frame(self):
         self.current_frame += 1
 
+        player_cnt = 0
         for player in players:
-            player.move()
+            #change position
+            player.pos += (movement[0] * self.speed, movement[1] * self.speed)
+
+            #check number of players alive
+            if player.alive:
+                player_cnt+=1
+            
         
         for bullet in bullets:
-            bullet.move()
+            #change position
+            bullet.pos += (movement[0] * self.speed, movement[1] * self.speed)
+
+            #check collision with players
+            for player in players:
+
+
+        if player_cnt == 1:
+            end_game()
+
+
+
+        
+        
+        
+        
 
