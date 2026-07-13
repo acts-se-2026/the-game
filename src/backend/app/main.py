@@ -10,5 +10,7 @@ app = FastAPI(
     redoc_url="/api/redoc" if ShowDocs else None
 )
 
+# ADD CORS LATER TODO
+
 app.include_router(testRouter)
 app.include_router(wsRouter)
