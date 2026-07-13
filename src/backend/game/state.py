@@ -140,6 +140,11 @@ class State:
             #change position
             bullet.pos += BULLET_SPEED * bullet.movement_dir
 
+            #check collision with obstacles
+            if self.is_box_in_obstacle(bullet.get_collision_box()):
+                removed_bullet_ids.add(bullet.id)
+                continue
+
             #check collision with players
             for player in self.players:
                 if player.uuid == bullet.owner_uuid:
