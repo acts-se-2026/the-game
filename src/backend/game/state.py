@@ -1,4 +1,4 @@
-from vector import Vec2
+from game.vector import Vec2
 
 # rotations:  0 is up, value in radians
 # positions:   (0, 0) is top-left, value in pixels
@@ -10,18 +10,18 @@ class Box:
 
     def area_colliding(box1, box2):
         return not (
-            (box1.x + box1.size.x < box2.x) # x1 is too much to the left, so it doesn't collide
-            or (box1.x > box2.x + box2.size.x) # x1 is too much to the right, so it doesn't collide
+            (box1.pos.x + box1.size.x < box2.pos.x) # x1 is too much to the left, so it doesn't collide
+            or (box1.pos.x > box2.pos.x + box2.size.x) # x1 is too much to the right, so it doesn't collide
         ) or (
-            (box1.y + box1.size.y < box2.y) # y1 is too far down, so it doesn't collide
-            or (box1.y > box2.y + box2.size.y) # y1 is too far up, so it doesn't collide
+            (box1.pos.y + box1.size.y < box2.pos.y) # y1 is too far down, so it doesn't collide
+            or (box1.pos.y > box2.pos.y + box2.size.y) # y1 is too far up, so it doesn't collide
         )
 
 
 class Player:
     speed = 10
 
-    def __init__(self, pos, uuid):
+    def __init__(self, uuid, pos):
         self.uuid = uuid
 
         self.hp = 100
