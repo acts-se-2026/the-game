@@ -29,6 +29,8 @@ class Player:
         self.rotation = 0
         self.alive = True
 
+        self.box = Box(self.pos, 10)
+
         self.movement = (0, 0)
     
     def kill(self):
@@ -36,6 +38,10 @@ class Player:
     
     def move(self):
         self.pos += (movement[0] * self.speed, movement[1] * self.speed)
+        self.box = self.pos
+
+    def hit(self):
+        self.hp -= 10
 
 
 
@@ -46,6 +52,11 @@ class Bullet:
     def __init__(self, pos):
         self.pos = pos
         self.movement = (0, 0)
+
+        self.box = Box(self.pos, 5)
+
+    def kill(self):
+        pass
 
 
 class State:
@@ -80,9 +91,12 @@ class State:
 
             #check collision with players
             for player in players:
+                if Box.area_colliding(player.box, bullet.box):
+                    player.hit()
+                    bullet.kill()
 
 
-        if player_cnt == 1:
+        if player_cnt <= 1:
             end_game()
 
 
