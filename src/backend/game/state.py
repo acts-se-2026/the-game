@@ -8,7 +8,6 @@ class Box:
         self.pos = pos
         self.size = size
 
-
     def area_colliding(box1, box2):
         return not (
             (box1.x + box1.size.x < box2.x) # x1 is too much to the left, so it doesn't collide
@@ -22,7 +21,9 @@ class Box:
 class Player:
     speed = 10
 
-    def __init__(self, pos):
+    def __init__(self, pos, uuid):
+        self.uuid = uuid
+
         self.hp = 100
         self.pos = pos
         self.last_shot_time = 0 # frame number at which the bullet was shot
@@ -37,8 +38,8 @@ class Player:
         self.alive = False
     
     #here you will only change the movement direction vector and the position will update in step_frame
-    def move(self):
-        pass
+    def set_movement_dir(self, movement_dir):
+        self.movement_dir = movement_dir.normalized_or_zero()
 
     def hit(self):
         self.hp -= 10
@@ -56,26 +57,31 @@ class Bullet:
         self.box = Box(self.pos, Vec2(5, 5))
 
     #here you will only change the movement direction vector and the position will update in step_frame
-    def move(self):
-        pass
+    def set_movement_dir(self, movement_dir):
+        self.movement_dir = movement_dir.normalized_or_zero()
 
     def kill(self):
-        pass
+        # TODO: actually delete the bullet
+        self.position = Vec2(999999,999999)
 
 
 class State:
-    def __init__(self, player_cnt):
+    def __init__(self, player_uuids):
         self.current_frame = 0
         self.bullets = []
         self.obstacles = []
         
         self.players = []
-        for i in range(player_cnt):
-            self.players.append(Player(Vec2(100, 100)))
-    
-    def end_game(self):
-        pass
+        for uuid in player_uuids:
+            self.players.append(Player(uuid, Vec2(100, 100)))
 
+    # Called from outside
+    def set_player_movement_dir(self, player_uuid, direction):
+        for player in self.players:
+            if player.uuid == player_uuid:
+                player.set_movement_dir(direction)
+        
+    # Called from outside
     def step_frame(self):
         self.current_frame += 1
 
@@ -104,8 +110,10 @@ class State:
 
         if player_cnt <= 1:
             self.end_game()
-
         
+
+    def end_game(self):
+        pass
         
         
         

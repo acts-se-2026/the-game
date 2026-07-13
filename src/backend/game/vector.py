@@ -37,6 +37,12 @@ class Vec2:
     def normalized(self):
         return self / self.length()
 
+    def normalized_or_zero(self):
+        length = self.length()
+        if length == 0:
+            return 0
+        return self / self.length()
+
 
 Vec2.ONE = Vec2(1, 1)
 Vec2.ZERO = Vec2(0, 0)
