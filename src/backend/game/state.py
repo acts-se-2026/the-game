@@ -36,9 +36,9 @@ class Player:
     def kill(self):
         self.alive = False
     
+    #here you will only change the movement direction vector and the position will update in step_frame
     def move(self):
-        self.pos += (movement[0] * self.speed, movement[1] * self.speed)
-        self.box = self.pos
+        pass
 
     def hit(self):
         self.hp -= 10
@@ -54,6 +54,10 @@ class Bullet:
         self.movement = (0, 0)
 
         self.box = Box(self.pos, 5)
+
+    #here you will only change the movement direction vector and the position will update in step_frame
+    def move(self):
+        pass
 
     def kill(self):
         pass
@@ -78,7 +82,8 @@ class State:
         player_cnt = 0
         for player in players:
             #change position
-            player.pos += (movement[0] * self.speed, movement[1] * self.speed)
+            player.pos += (movement[0] * player.speed, movement[1] * player.speed)
+            player.box.pos = player.pos
 
             #check number of players alive
             if player.alive:
@@ -87,7 +92,8 @@ class State:
         
         for bullet in bullets:
             #change position
-            bullet.pos += (movement[0] * self.speed, movement[1] * self.speed)
+            bullet.pos += (movement[0] * bullet.speed, movement[1] * bullet.speed)
+            bullet.box.pos = bullet.pos
 
             #check collision with players
             for player in players:
