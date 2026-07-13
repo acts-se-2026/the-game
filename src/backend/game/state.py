@@ -1,7 +1,7 @@
-from vector import Vec2
+from game.vector import Vec2
 
 # rotations:  0 is up, value in radians
-# positions:   (0, 0) is top-left, value in pixels
+# positions:  (0, 0) is top-left, value in pixels
 
 class Box:
     def __init__(self, pos, size):
@@ -28,14 +28,10 @@ class Player:
         self.pos = pos
         self.last_shot_time = 0 # frame number at which the bullet was shot
         self.rotation = 0
-        self.alive = True
 
         self.box = Box(self.pos, 10)
 
         self.movement_dir = Vec2(0, 0)
-    
-    def kill(self):
-        self.alive = False
     
     #here you will only change the movement direction vector and the position will update in step_frame
     def set_movement_dir(self, movement_dir):
@@ -60,10 +56,6 @@ class Bullet:
     def set_movement_dir(self, movement_dir):
         self.movement_dir = movement_dir.normalized_or_zero()
 
-    def kill(self):
-        # TODO: actually delete the bullet
-        self.position = Vec2(999999,999999)
-
 
 class State:
     def __init__(self, player_uuids):
@@ -85,17 +77,16 @@ class State:
     def step_frame(self):
         self.current_frame += 1
 
-        player_cnt = 0
         for player in self.players:
             #change position
             player.pos += player.speed * player.movement_dir
             player.box.pos = player.pos
-
-            #check number of players alive
-            if player.alive:
-                player_cnt+=1
-            
         
+        # remove dead players
+        self.players = [player for player in self.players if player.hp > 0]
+
+        
+        killed_bullets = set()            
         for bullet in self.bullets:
             #change position
             bullet.pos += bullet.movement_dir * bullet.speed
@@ -105,10 +96,14 @@ class State:
             for player in self.players:
                 if Box.area_colliding(player.box, bullet.box):
                     player.hit()
-                    bullet.kill()
+                    killed_bullets.add(bullet)
+                    break # this bullet cannot hit any other players
+
+        # remove killed bullets
+        self.bullets = [bullet for bullet in self.bullets if bullet in killed_bullets]
 
 
-        if player_cnt <= 1:
+        if len(self.players) <= 1:
             self.end_game()
         
 
