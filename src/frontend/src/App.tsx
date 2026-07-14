@@ -1,17 +1,33 @@
-import { BrowserRouter, Routes, Route } from 'react-router'
-import MainPage from './pages/main'
+import { BrowserRouter, Outlet, Route, Routes } from 'react-router'
+import LoginPage from './pages/LoginPage'
+import LobbyPage from './pages/lobby/LobbyPage'
+import WaitingRoomPage from './pages/rooms/[roomId]/WaitingRoomPage'
+import ArenaPage from './pages/rooms/[roomId]/arena/ArenaPage'
+import { UserProvider } from './context/UserContext.tsx'
 import { WebSocketProvider } from './components/WsContext'
-import TestWSPage from './pages/test-ws'
+
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<LoginPage />} />
+      <Route path="/lobby/" element={<LobbyPage />} />
+
+      <Route path="/rooms/" element={<Outlet />}>
+        <Route path=":roomId" element={<WaitingRoomPage />} />
+        <Route path=":roomId/arena" element={<ArenaPage />} />
+      </Route>
+    </Routes>
+  )
+}
 
 function App() {
   return (
     <WebSocketProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<MainPage />} />
-          <Route path="/test-ws" element={<TestWSPage />} />
-        </Routes>
-      </BrowserRouter>
+      <UserProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </UserProvider>
     </WebSocketProvider>
   )
 }
