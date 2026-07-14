@@ -12,9 +12,9 @@ type RoomCardProps = {
 
 export default function RoomCard({ room, onJoin }: RoomCardProps) {
   return (
-    <li className="flex flex-col justify-between gap-5 rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl shadow-black/10 sm:flex-row sm:items-center">
+    <li className="w-full flex flex-col justify-between gap-5 rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl shadow-black/10 sm:flex-row sm:items-center">
       <div>
-        <h2 className="text-lg font-black text-white">{room.name}</h2>
+        <h2 className="text-xl font-black text-white">{room.name}</h2>
         <p className="mt-1 text-sm text-slate-400">Room ID: {room.id}</p>
       </div>
       <div className="flex items-center justify-between gap-5 sm:justify-end">
@@ -22,7 +22,7 @@ export default function RoomCard({ room, onJoin }: RoomCardProps) {
         <button
           type="button"
           onClick={() => onJoin(room.id)}
-          className="rounded-xl bg-blue-500 px-4 py-2.5 font-black text-white transition hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="rounded-xl bg-blue-500 px-5 py-3 font-black text-white transition hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
           aria-label="Join room"
         >
           Join
