@@ -1,3 +1,6 @@
+# Setup .env
+- copy .env.example to .env and fill data about it
+
 # Sync (install all packages)
 ```bash
 uv sync

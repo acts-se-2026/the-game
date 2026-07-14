@@ -4,6 +4,7 @@ import LobbyPage from './pages/lobby/LobbyPage'
 import WaitingRoomPage from './pages/rooms/[roomId]/WaitingRoomPage'
 import ArenaPage from './pages/rooms/[roomId]/arena/ArenaPage'
 import { UserProvider } from './context/UserContext.tsx'
+import { WebSocketProvider } from './components/WsContext'
 
 export function AppRoutes() {
   return (
@@ -21,11 +22,13 @@ export function AppRoutes() {
 
 function App() {
   return (
-    <UserProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </UserProvider>
+    <WebSocketProvider>
+      <UserProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </UserProvider>
+    </WebSocketProvider>
   )
 }
 
