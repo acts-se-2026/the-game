@@ -40,7 +40,7 @@ class Vec2:
     def normalized_or_zero(self):
         length = self.length()
         if length == 0:
-            return 0
+            return Vec2.ZERO
         return self / self.length()
 
 
