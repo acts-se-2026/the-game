@@ -3,6 +3,7 @@ import LoginPage from './pages/LoginPage'
 import LobbyPage from './pages/lobby/LobbyPage'
 import WaitingRoomPage from './pages/rooms/[roomId]/WaitingRoomPage'
 import ArenaPage from './pages/rooms/[roomId]/arena/ArenaPage'
+import { UserProvider } from './context/UserContext.tsx'
 
 export function AppRoutes() {
   return (
@@ -20,9 +21,11 @@ export function AppRoutes() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <UserProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </UserProvider>
   )
 }
 
