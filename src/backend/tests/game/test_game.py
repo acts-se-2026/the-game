@@ -81,8 +81,8 @@ def test_shooting_direction():
 def test_bullet_hits_player():
     state = State()
 
-    shooter = state.add_player('a', Vec2(100, 100))
-    target = state.add_player('b', Vec2(100 + BULLET_SPEED, 100))
+    shooter = state.add_player(Player('a', Vec2(100, 100)))
+    target = state.add_player(Player('b', Vec2(100 + BULLET_SPEED, 100)))
 
     shooter.rotation = 0
 
@@ -110,7 +110,7 @@ def test_collision_with_walls():
     state = State()
     player = state.add_player(Player('a', Vec2(100, 100)))
 
-    level_size = state.get_level_info()
+    level_size = state.get_level_info().level_size
 
     # left wall
     player.pos = Vec2(PLAYER_SIZE.x / 2, 50)
