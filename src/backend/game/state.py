@@ -1,8 +1,11 @@
 from game.vector import Vec2
 import math
+import random
 
 # rotations:  0 is right, value is in clockwise radians
 # positions:  (0, 0) is top-left, value in pixels
+
+LEVEL_SIZE = Vec2(600, 600)
 
 PLAYER_SIZE = Vec2(30, 30)
 PLAYER_SPEED = 10
@@ -72,19 +75,61 @@ class StateDiff:
         self.players = players # list of Player
 
 
+# Data that needs to be sent once to the client, at the beginning of the game
+class GameInfo:
+    def __init__(self, level_size, obstacles):
+        self.level_size = level_size # list of Vec2
+        self.obstacles = obstacles # list of Box
 
+
+
+# Lifetime:
+# - __init__ which sets up level data
+# - add players 
+# - do anything you want
 class State:
-    def __init__(self, player_uuids, level_size=Vec2(800, 400)):
+    # adds preset obstacles and players
+    def init_populated(player_uuids):
+        obstacles = [
+            Box(Vec2(250, 0), Vec2(100, 200)),
+            Box(Vec2(250, 400), Vec2(100, 200)),
+        ]
+
+        s = State(obstacles)
+        s.add_players_at_random_positions(player_uuids)
+        return s
+
+
+    def __init__(self, obstacles=[]):
         self.current_frame = 0
         self.bullets = []
-        self.obstacles = []
-        self.level_size = level_size
         
         self.unsent_bullet_ids = []
         
+        self.obstacles = obstacles
         self.players = []
+
+        
+    def add_players_at_random_positions(self, player_uuids):
         for uuid in player_uuids:
-            self.players.append(Player(uuid, Vec2(100, 100)))
+            player = Player(uuid, Vec2.ZERO)
+
+            # randomize the starting position 
+            while True:
+                player.pos = Vec2(random.random() * LEVEL_SIZE.x, random.random() * LEVEL_SIZE.y)
+                if not self.is_box_in_obstacle(player.get_collision_box()):
+                    break
+
+            self.players.append(player)
+
+    def add_player(self, player):
+        self.players.append(player)
+        return player
+
+
+    # Called from outside
+    def get_level_info(self):
+        return GameInfo(LEVEL_SIZE, self.obstacles)
 
     # Called from outside
     def set_player_movement_dir(self, player_uuid, direction):
@@ -167,12 +212,15 @@ class State:
 
 
     def is_box_in_obstacle(self, box):
-        # TODO: add collisions against non-wall obstacles
+        for obstacle_box in self.obstacles:
+            if Box.area_colliding(obstacle_box, box):
+                return True
+        
         return (
             box.pos.x < 0
             or box.pos.y < 0
-            or box.pos.x + box.size.x > self.level_size.x
-            or box.pos.y + box.size.y > self.level_size.y
+            or box.pos.x + box.size.x > LEVEL_SIZE.x
+            or box.pos.y + box.size.y > LEVEL_SIZE.y
         )
         
 

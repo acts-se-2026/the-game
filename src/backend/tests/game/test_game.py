@@ -8,46 +8,45 @@ def test_collisions():
     box1 = Box(Vec2(0, 0), Vec2(5, 5))
     box2 = Box(Vec2(0, 0), Vec2(5, 5))
 
-    assert Box.area_colliding(box1, box2) == True
+    assert Box.area_colliding(box1, box2)
 
     box3 = Box(Vec2(100, 0), Vec2(5, 5))
     box4 = Box(Vec2(0, 0), Vec2(5, 5))
 
-    assert Box.area_colliding(box3, box4) == False
+    assert not Box.area_colliding(box3, box4)
 
     box5 = Box(Vec2(0, 0), Vec2(100, 5))
     box6 = Box(Vec2(50, 0), Vec2(10, 10))
 
-    assert Box.area_colliding(box5, box6) == True
+    assert Box.area_colliding(box5, box6)
 
     box7 = Box(Vec2(-50, -50), Vec2(1, 5))
     box8 = Box(Vec2(-45, -50), Vec2(10, 10))
 
-    assert Box.area_colliding(box7, box8) == False
+    assert not Box.area_colliding(box7, box8)
 
 def test_state_initializes_players():
-    state = State(["a", "b", "c"])
+    state = State.init_populated(["a", "b", "c"])
 
     assert len(state.players) == 3
 
 
 def test_player_movemet():
-    state = State(["p1", "p2"])
+    state = State()
+    player = state.add_player(Player('p1', Vec2(100, 100)))
+    player2 = state.add_player(Player('p2', Vec2(100, 100)))
+
     state.set_player_movement_dir("p1", Vec2(1, 0))
 
     state.step_frame()
-
-    player = state.players[0]
-    player2 = state.players[1]
 
     assert player.pos == Vec2(100, 100) + PLAYER_SPEED * Vec2(1, 0)
     assert player2.pos == Vec2(100, 100)
 
 
 def test_player_hit():
-    state = State(["p1"])
-
-    player = state.players[0]
+    state = State()
+    player = state.add_player(Player('a', Vec2(100, 100)))
 
     assert player.hp == 100
     player.hit()
@@ -80,13 +79,10 @@ def test_shooting_direction():
     assert shooting_dir.y == pytest.approx(-1)
   
 def test_bullet_hits_player():
-    state = State(["a", "b"])
+    state = State()
 
-    shooter = state.players[0]
-    target = state.players[1]
-
-    shooter.pos = Vec2(100, 100)
-    target.pos = Vec2(100 + BULLET_SPEED, 100)
+    shooter = state.add_player(Player('a', Vec2(100, 100)))
+    target = state.add_player(Player('b', Vec2(100 + BULLET_SPEED, 100)))
 
     shooter.rotation = 0
 
@@ -99,10 +95,11 @@ def test_bullet_hits_player():
     assert len(state.bullets) == 0
 
 def test_bullet_delay():
-    state = State(["a"])
+    state = State()
+    player = state.add_player(Player('a', Vec2(100, 100)))
+
     state.current_frame = 100
 
-    player =  state.players[0]
     player.last_shot_time = 101
 
     state.try_shoot_player_bullet("a")
@@ -110,8 +107,10 @@ def test_bullet_delay():
     assert player.last_shot_time == 101
 
 def test_collision_with_walls():
-    state = State(["a"])
-    player = state.players[0]
+    state = State()
+    player = state.add_player(Player('a', Vec2(100, 100)))
+
+    level_size = state.get_level_info().level_size
 
     # left wall
     player.pos = Vec2(PLAYER_SIZE.x / 2, 50)
@@ -121,11 +120,11 @@ def test_collision_with_walls():
     assert player.pos == Vec2(PLAYER_SIZE.x / 2, 50)
 
     # right wall
-    player.pos = Vec2(state.level_size.x - PLAYER_SIZE.x / 2, 50)
+    player.pos = Vec2(level_size.x - PLAYER_SIZE.x / 2, 50)
     player.movement_dir = Vec2(1, 0)
     state.step_frame()
 
-    assert player.pos == Vec2(state.level_size.x - PLAYER_SIZE.x / 2, 50)
+    assert player.pos == Vec2(level_size.x - PLAYER_SIZE.x / 2, 50)
 
     # top wall
     player.pos = Vec2(50, PLAYER_SIZE.y / 2)
@@ -135,8 +134,8 @@ def test_collision_with_walls():
     assert player.pos == Vec2(50, PLAYER_SIZE.y / 2)
 
     # bottom wall
-    player.pos = Vec2(50, state.level_size.y - PLAYER_SIZE.y / 2)
+    player.pos = Vec2(50, level_size.y - PLAYER_SIZE.y / 2)
     player.movement_dir = Vec2(0, 1)
     state.step_frame()
 
-    assert player.pos == Vec2(50, state.level_size.y - PLAYER_SIZE.y / 2)
+    assert player.pos == Vec2(50, level_size.y - PLAYER_SIZE.y / 2)
