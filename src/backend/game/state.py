@@ -1,7 +1,7 @@
 from game.vector import Vec2
 import math
 
-# rotations:  0 is up, value in radians
+# rotations:  0 is right, value is in clockwise radians
 # positions:  (0, 0) is top-left, value in pixels
 
 PLAYER_SIZE = Vec2(30, 30)
