@@ -82,19 +82,35 @@ class GameInfo:
         self.obstacles = obstacles # list of Box
 
 
+
+# Lifetime:
+# - __init__ which sets up level data
+# - add players 
+# - do anything you want
 class State:
-    def __init__(self, player_uuids):
+    # adds preset obstacles and players
+    def init_populated(player_uuids):
+        obstacles = [
+            Box(Vec2(250, 0), Vec2(100, 200)),
+            Box(Vec2(250, 400), Vec2(100, 200)),
+        ]
+
+        s = State(obstacles)
+        s.add_players_at_random_positions(player_uuids)
+        return s
+
+
+    def __init__(self, obstacles=[]):
         self.current_frame = 0
         self.bullets = []
         
         self.unsent_bullet_ids = []
         
-        self.obstacles = [
-            Box(Vec2(250, 0), Vec2(100, 200)),
-            Box(Vec2(250, 400), Vec2(100, 200)),
-        ]
-
+        self.obstacles = obstacles
         self.players = []
+
+        
+    def add_players_at_random_positions(self, player_uuids):
         for uuid in player_uuids:
             player = Player(uuid, Vec2.ZERO)
 
@@ -105,6 +121,11 @@ class State:
                     break
 
             self.players.append(player)
+
+    def add_player(self, player):
+        self.players.append(player)
+        return player
+
 
     # Called from outside
     def get_level_info(self):
