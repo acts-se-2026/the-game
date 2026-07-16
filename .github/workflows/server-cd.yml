@@ -49,4 +49,4 @@ jobs:
 
           ssh dev@89.169.113.154 "docker compose down"
           scp docker-compose.yml dev@89.169.113.154:/home/dev/
-          ssh dev@89.169.113.154 "docker compose up -d"
+          ssh dev@89.169.113.154 "docker compose pull && docker compose up -d"
