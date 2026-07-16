@@ -3,7 +3,7 @@ name: Push docker images
 on:
   push:
     branches:
-      - ci/push-containers
+      - main
 
 jobs:
   push:
