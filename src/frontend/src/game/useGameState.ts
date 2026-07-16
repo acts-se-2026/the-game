@@ -3,10 +3,8 @@ import { useWsConnection } from '../components/WsContext'
 import type { WsUnknownPacket } from '../components/WsContext/types'
 import { demoArena } from './demoArena'
 import {
-  createClientExplosion,
   createClientBullet,
   interpolateClientBullets,
-  stepClientExplosions,
   stepClientBullets,
   type ClientBullet,
 } from './clientBullets'
@@ -63,9 +61,7 @@ export function useGameState() {
   const lastAimSentAt = useRef(0)
   const lastShotAt = useRef(Number.NEGATIVE_INFINITY)
   const nextBulletId = useRef(0)
-  const nextExplosionId = useRef(0)
   const clientBulletsRef = useRef<ClientBullet[]>([])
-  const clientExplosionsRef = useRef<ArenaState['explosions']>([])
   const localHeadingRef = useRef<number | null>(null)
   const latestArenaRef = useRef<ArenaState>(demoArena)
   const previousSnapshotRef = useRef<ArenaState>(demoArena)
@@ -117,27 +113,11 @@ export function useGameState() {
       const obstacles = nextSnapshot.obstacles
 
       while (accumulator >= FIXED_STEP_SECONDS) {
-        const steppedBullets = stepClientBullets(
+        clientBulletsRef.current = stepClientBullets(
           clientBulletsRef.current,
           FIXED_STEP_SECONDS,
           obstacles,
           ARENA_SIZE,
-        )
-
-        clientBulletsRef.current = steppedBullets.bullets
-        if (steppedBullets.impacts.length > 0) {
-          clientExplosionsRef.current = [
-            ...clientExplosionsRef.current,
-            ...steppedBullets.impacts.map((position) => {
-              nextExplosionId.current += 1
-              return createClientExplosion(`impact-${nextExplosionId.current}`, position)
-            }),
-          ]
-        }
-
-        clientExplosionsRef.current = stepClientExplosions(
-          clientExplosionsRef.current,
-          FIXED_STEP_SECONDS,
         )
         accumulator -= FIXED_STEP_SECONDS
       }
@@ -163,7 +143,7 @@ export function useGameState() {
           ...serverBullets,
           ...interpolateClientBullets(clientBulletsRef.current, accumulator / FIXED_STEP_SECONDS),
         ],
-        explosions: [...nextSnapshot.explosions, ...clientExplosionsRef.current],
+        explosions: nextSnapshot.explosions,
       }
 
       latestArenaRef.current = renderedArena
