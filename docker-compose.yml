@@ -1,23 +1,11 @@
 services:
-  # Caddy Reverse Proxy Service
   frontend:
-    image: caddy:2-alpine
+    image: the-game-frontend
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./conf/Caddyfile:/etc/caddy/Caddyfile
-      - ./src/frontend/dist:/srv
-      - caddy_data:/data
-      - caddy_config:/config
-
+ 
     backend:
-      image: the-game-0.01
+      image: the-game-backend
       restart: unless-stopped
       
-
-volumes:
-  caddy_data:     # Persists your SSL certificates so they don't get lost on restarts
-  caddy_config:

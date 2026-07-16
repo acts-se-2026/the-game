@@ -1,4 +1,4 @@
-FROM python:3.11-slim AS builder
+FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -6,13 +6,13 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /build
 
 # Install dependencies
-COPY src/backend/pyproject.toml src/backend/uv.lock .
+COPY pyproject.toml uv.lock .
 
 RUN pip install --no-cache-dir uv \
     && uv sync
 
 #Install backend
-COPY src/backend/ .
+COPY . .
 
 EXPOSE 8000
 
