@@ -3,6 +3,7 @@
     "./src/backend"
   ],
   "cSpell.words": [
+    "dotenv",
     "redoc",
     "VITE"
   ]

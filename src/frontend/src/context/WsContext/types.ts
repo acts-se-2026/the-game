@@ -5,9 +5,12 @@ export interface WsUnknownPacket {
 }
 
 // Known Packets (for now this is example packet)
-export interface MessagePacket {
-    type: "message";
+export interface PlayerListUpdatePacket {
+    type: "user_list";
     data: {
-        content: string;
-    };
+        players: {
+            userId: string;
+            username: string;
+        }[];
+    }
 }

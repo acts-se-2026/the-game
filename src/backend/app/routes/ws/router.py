@@ -1,25 +1,31 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+
+from app.auth.auth import getCurrentUser
+from app.auth.types import SessionPayload
+from game.backendConnections import connectionManager
+from game.backendConnections.room import Room
 
 wsRouter = APIRouter(prefix="/api/ws", tags=["ws"])
 
-@wsRouter.websocket("/")
-async def websocket_endpoint(websocket: WebSocket):
+@wsRouter.websocket("/{roomId}")
+async def websocket_endpoint(websocket: WebSocket, user: SessionPayload = Depends(getCurrentUser), roomId: str = None):
+    if not connectionManager.checkIfRoomExists(roomId) or len(connectionManager.rooms[roomId].activeConnections) >= connectionManager.rooms[roomId].maxPlayers:
+        await websocket.close(code=1000)
+        return
+
+    room: Room = connectionManager.getOrCreateRoom(roomId)
+    room.connect(websocket, user)
+
     await websocket.accept()
-    await websocket.send_json({
-        "type": "connection_established",
-        "message": "You are connected to the WebSocket server."
-    })
+    await room.broadcast({"type": "user_list", "data": room.getAllPlayers()})
     
     try:
         while True:
             data = await websocket.receive_json() 
             
-            response_payload = {
-                "type": "message",
-                "message": f"Received message: {data}"
-            }
-            
-            await websocket.send_json(response_payload)
+            print(f"Received data from user {user.session_id} in room {roomId}: {data}")
             
     except WebSocketDisconnect:
-        pass
+        room.disconnect(websocket)
+        if len(room.activeConnections) == 0:
+            connectionManager.removeRoom(roomId)
