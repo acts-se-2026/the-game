@@ -4,15 +4,13 @@ on:
   push:
     branches:
       - ci/push-containers
+
 jobs:
   push:
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
     steps:
       - name: Checkout repository
-      - uses: actions/checkout@v6
+        uses: actions/checkout@v6
 
       - name: Build backend image
         run: docker build . --tag backend"
