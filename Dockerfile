@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /build
 
 # Install dependencies
-COPY pyproject.toml uv.lock .
+COPY src/backend/pyproject.toml src/backend/uv.lock .
 
 RUN pip install --no-cache-dir uv \
     && uv sync
