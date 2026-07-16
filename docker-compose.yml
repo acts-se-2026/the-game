@@ -4,8 +4,14 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    
+    volumes:
+      - .env.frontend:/srv/.env
  
   backend:
     image: the-game-backend
     restart: unless-stopped
+
+    volumes:
+      - .env.backend:/build/.env
       
