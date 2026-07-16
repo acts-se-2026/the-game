@@ -5,8 +5,6 @@ services:
     ports:
       - "80:80"
     
-    volumes:
-      - .env.frontend:/srv/.env
  
   backend:
     image: ghcr.io/acts-se-2026/the-game-backend:latest
