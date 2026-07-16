@@ -5,7 +5,7 @@ services:
     ports:
       - "80:80"
  
-    backend:
-      image: the-game-backend
-      restart: unless-stopped
+  backend:
+    image: the-game-backend
+    restart: unless-stopped
       
