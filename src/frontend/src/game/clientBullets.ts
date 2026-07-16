@@ -1,10 +1,11 @@
-import type { Bullet, Obstacle } from './types'
+import type { Bullet, Explosion, Obstacle } from './types'
 
 export const BULLET_RADIUS = 4
 export const BULLET_SPEED = 550
 
 const BULLET_LIFETIME_SECONDS = 2
 const MUZZLE_DISTANCE = 26
+export const EXPLOSION_LIFETIME_SECONDS = 0.28
 
 export type ClientBullet = Bullet & {
   previousX: number
@@ -17,6 +18,15 @@ export type ClientBullet = Bullet & {
 type Position = {
   x: number
   y: number
+}
+
+export type StepClientBulletsResult = {
+  bullets: ClientBullet[]
+  impacts: Position[]
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
 }
 
 export function createClientBullet(
@@ -81,10 +91,15 @@ export function stepClientBullets(
   deltaSeconds: number,
   obstacles: Obstacle[],
   arenaSize: number,
-): ClientBullet[] {
-  if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) return bullets
+): StepClientBulletsResult {
+  if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) {
+    return { bullets, impacts: [] }
+  }
 
-  return bullets.flatMap((bullet) => {
+  const nextBullets: ClientBullet[] = []
+  const impacts: Position[] = []
+
+  for (const bullet of bullets) {
     const x = bullet.x + bullet.velocityX * deltaSeconds
     const y = bullet.y + bullet.velocityY * deltaSeconds
     const age = bullet.age + deltaSeconds
@@ -97,17 +112,27 @@ export function stepClientBullets(
       segmentIntersectsObstacle(bullet.x, bullet.y, x, y, obstacle),
     )
 
-    if (age >= BULLET_LIFETIME_SECONDS || isOutsideArena || hitObstacle) return []
+    if (hitObstacle || isOutsideArena) {
+      impacts.push({
+        x: clamp(x, BULLET_RADIUS, arenaSize - BULLET_RADIUS),
+        y: clamp(y, BULLET_RADIUS, arenaSize - BULLET_RADIUS),
+      })
+      continue
+    }
 
-    return [{
+    if (age >= BULLET_LIFETIME_SECONDS) continue
+
+    nextBullets.push({
       ...bullet,
       previousX: bullet.x,
       previousY: bullet.y,
       x,
       y,
       age,
-    }]
-  })
+    })
+  }
+
+  return { bullets: nextBullets, impacts }
 }
 
 export function interpolateClientBullets(
@@ -121,4 +146,34 @@ export function interpolateClientBullets(
     x: bullet.previousX + (bullet.x - bullet.previousX) * safeAlpha,
     y: bullet.previousY + (bullet.y - bullet.previousY) * safeAlpha,
   }))
+}
+
+export function createClientExplosion(
+  id: string,
+  position: Position,
+): Explosion {
+  return {
+    id,
+    x: position.x,
+    y: position.y,
+    age: 0,
+    maxAge: EXPLOSION_LIFETIME_SECONDS,
+  }
+}
+
+export function stepClientExplosions(
+  explosions: Explosion[],
+  deltaSeconds: number,
+): Explosion[] {
+  if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) return explosions
+
+  return explosions.flatMap((explosion) => {
+    const age = explosion.age + deltaSeconds
+    if (age >= explosion.maxAge) return []
+
+    return [{
+      ...explosion,
+      age,
+    }]
+  })
 }

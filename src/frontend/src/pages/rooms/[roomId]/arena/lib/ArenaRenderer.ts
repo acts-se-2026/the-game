@@ -1,5 +1,5 @@
 import { Application, Container, Graphics } from "pixi.js";
-import { ARENA_SIZE, type ArenaState, type Bullet, type Obstacle, type Player } from "../../../../../game/types";
+import { ARENA_SIZE, type ArenaState, type Bullet, type Explosion, type Obstacle, type Player } from "../../../../../game/types";
 
 const PLAYER_RADIUS = 18;
 const BULLET_RADIUS_X = 7;
@@ -12,6 +12,7 @@ export class ArenaRenderer {
     private players: Map<string, Container> = new Map();
     private obstacles: Map<string, Graphics> = new Map();
     private bullets: Map<string, Graphics> = new Map();
+    private explosions: Map<string, Graphics> = new Map();
     private previousBulletPositions: Map<string, { x: number; y: number }> = new Map();
 
     constructor(app: Application) {
@@ -36,6 +37,44 @@ export class ArenaRenderer {
         this.syncObstacles(state.obstacles);
         this.syncPlayers(state.players);
         this.syncBullets(state.bullets);
+        this.syncExplosions(state.explosions);
+    }
+
+    private syncExplosions(data: Explosion[]) {
+        const currentIds = new Set(data.map((explosion) => explosion.id));
+
+        for (const [id, graphics] of this.explosions.entries()) {
+            if (!currentIds.has(id)) {
+                graphics.destroy(true);
+                this.explosions.delete(id);
+            }
+        }
+
+        for (const explosion of data) {
+            let graphics = this.explosions.get(explosion.id);
+            if (!graphics) {
+                graphics = new Graphics();
+                this.world.addChild(graphics);
+                this.explosions.set(explosion.id, graphics);
+            }
+
+            const progress = Math.min(1, Math.max(0, explosion.age / explosion.maxAge));
+            const alpha = 1 - progress;
+            const outerRadius = 8 + progress * 22;
+            const middleRadius = Math.max(4, outerRadius * 0.64);
+            const coreRadius = Math.max(2, 8 * (1 - progress));
+
+            graphics.clear()
+                .circle(0, 0, outerRadius)
+                .stroke({ color: 0xfb923c, width: 2, alpha: alpha * 0.9 })
+                .circle(0, 0, middleRadius)
+                .stroke({ color: 0xfacc15, width: 2, alpha: alpha * 0.75 })
+                .circle(0, 0, coreRadius)
+                .fill({ color: 0xfef08a, alpha: alpha * 0.7 });
+
+            graphics.x = explosion.x;
+            graphics.y = explosion.y;
+        }
     }
 
     private syncBullets(data: Bullet[]) {
@@ -159,6 +198,7 @@ export class ArenaRenderer {
         this.players.clear();
         this.obstacles.clear();
         this.bullets.clear();
+        this.explosions.clear();
         this.previousBulletPositions.clear();
     }
 }

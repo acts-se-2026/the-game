@@ -23,8 +23,17 @@ export type Bullet = {
   y: number
 }
 
+export type Explosion = {
+  id: string
+  x: number
+  y: number
+  age: number
+  maxAge: number
+}
+
 export type ArenaState = {
   obstacles: Obstacle[]
   players: Player[]
   bullets: Bullet[]
+  explosions: Explosion[]
 }
