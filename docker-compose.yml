@@ -1,11 +1,11 @@
 services:
   frontend:
-    image: the-game-frontend
+    image: ghcr.io/acts-se-2026/the-game-frontend:latest
     restart: unless-stopped
     ports:
       - "80:80"
  
   backend:
-    image: the-game-backend
+    image: ghcr.io/acts-se-2026/the-game-backend:latest
     restart: unless-stopped
       
