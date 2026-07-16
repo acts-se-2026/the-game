@@ -45,3 +45,6 @@ jobs:
           echo "${{ secrets.SSH_KEY }}" > /home/runner/.ssh/id_ed25519
           chmod 600 /home/runner/.ssh/id_ed25519
           ssh dev@89.169.113.154 "echo HELLO > hello.txt"
+          echo "${{ secrets.GITHUB_TOKEN }}" | ssh dev@89.169.113.154 "docker login ghcr.io -u ${{ github.actor }} --password-stdin"
+          scp docker-compose.yml dev@89.169.113.154:/home/dev/
+          ssh dev@89.169.113.154 "docker compose up -d"
