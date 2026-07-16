@@ -1,11 +1,34 @@
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { useGameState } from "../../../../game/useGameState";
 import ArenaCanvas from "./components/ArenaCanvas";
+import { useWsConnection } from "../../../../context/WsContext";
+import { useEffect, useRef } from "react";
 
 export default function ArenaPage() {
+    const location = useLocation();
     const navigate = useNavigate();
     const { roomId = "PREVIEW" } = useParams();
     const { arena, shotsFired, handleAim, handleShoot } = useGameState();
+    const { isConnected, disconnectWs } = useWsConnection();
+    const hasRedirectedRef = useRef(false);
+
+    const hasArenaState = Boolean(location.state?.arenaState);
+
+    useEffect(() => {
+        if ((!hasArenaState || !isConnected) && !hasRedirectedRef.current) {
+            hasRedirectedRef.current = true;
+            navigate("/lobby");
+        }
+    }, [hasArenaState, isConnected, navigate]);
+
+    if (!hasArenaState) {
+        return null;
+    }
+
+    const handleLeaveMatch = () => {
+        disconnectWs();
+        navigate("/lobby");
+    };
 
     return (
         <main className="min-h-screen bg-slate-950 px-4 py-6 text-slate-200 sm:px-6 sm:py-10">
@@ -17,7 +40,7 @@ export default function ArenaPage() {
                     </div>
                     <button
                         type="button"
-                        onClick={() => navigate("/")}
+                        onClick={handleLeaveMatch}
                         className="w-fit rounded-xl border border-slate-700 px-4 py-2.5 font-bold hover:bg-slate-800"
                     >
                         Leave match

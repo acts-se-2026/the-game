@@ -4,7 +4,7 @@ import PlayerList, { type RoomPlayer } from "./components/PlayerList";
 import { useUser } from "../../../context/UserContext";
 import { useEffect, useRef, useState } from "react";
 import { useWsConnection } from "../../../context/WsContext";
-import type { PlayerListUpdatePacket, WsUnknownPacket } from "../../../context/WsContext/types";
+import type { GameStartPacket, PlayerListUpdatePacket, WsUnknownPacket } from "../../../context/WsContext/types";
 
 const baseWsPath = import.meta.env.VITE_WS_PATH || "/api/ws";
 
@@ -12,7 +12,7 @@ export default function WaitingRoomPage() {
     const navigate = useNavigate();
     const { roomId = "UNKNOWN" } = useParams();
     const { user } = useUser();
-    const { socket, connectWs, disconnectWs } = useWsConnection();
+    const { socket, connectWs, disconnectWs, sendMessage} = useWsConnection();
     const [players, setPlayers] = useState<RoomPlayer[]>([]);
     const goToArenaRef = useRef(false);
 
@@ -40,12 +40,15 @@ export default function WaitingRoomPage() {
         const handleIncomingPacket = (event: MessageEvent) => {
             const packet = JSON.parse(event.data) as WsUnknownPacket;
 
-            console.log("Received Packet:", packet);
-
             switch (packet.type) {
                 case "user_list":
                     const userListPacket = packet as PlayerListUpdatePacket;
                     setPlayers(userListPacket.data.players);
+                    break;
+                case "game_start":
+                    const gameStartPacket = packet as GameStartPacket;
+                    goToArenaRef.current = true;
+                    navigate(`/rooms/${roomId}/arena`, { state: { arenaState: gameStartPacket.data } });
                     break;
                 default:
                     console.warn("Unknown packet type:", packet.type);
@@ -71,6 +74,11 @@ export default function WaitingRoomPage() {
         };
     }, [socket, navigate]);
 
+    const handleStartMatch = () => {
+        sendMessage("game_start");
+    }
+        
+
     return (
         <div className="flex flex-col items-start min-h-screen px-6 py-12">
             <div className="w-full max-w-4xl mx-auto">
@@ -90,10 +98,7 @@ export default function WaitingRoomPage() {
                     <div className="mt-5 flex flex-wrap gap-3">
                         <button
                             type="button"
-                            onClick={() => {
-                                goToArenaRef.current = true;
-                                navigate(`/rooms/${roomId}/arena`);
-                            }}
+                            onClick={handleStartMatch}
                             className="rounded-xl bg-blue-500 px-5 py-2.5 font-black text-white transition hover:bg-blue-400"
                         >
                             Start match

@@ -48,6 +48,15 @@ class Player:
 
     def get_collision_box(self):
         return Box(self.pos - PLAYER_SIZE / 2, PLAYER_SIZE)
+
+    def to_dict(self):
+        return {
+            "id": self.uuid,
+            "x": self.pos.x,
+            "y": self.pos.y,
+            "heading": self.rotation,
+            "hp": self.hp,
+        }
         
 
 
@@ -66,6 +75,16 @@ class Bullet:
     def get_collision_box(self):
         return Box(self.pos - BULLET_SIZE / 2, BULLET_SIZE)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "x": self.pos.x,
+            "y": self.pos.y,
+            "dx": self.movement_dir.x,
+            "dy": self.movement_dir.y,
+            "owner": self.owner_uuid,
+        }
+
 
 
 class StateDiff:
@@ -73,6 +92,13 @@ class StateDiff:
         self.removed_bullet_ids = removed_bullet_ids # list of int
         self.new_bullets_appended = new_bullets_appended # list of Bullet
         self.players = players # list of Player
+
+    def to_dict(self):
+        return {
+            "players": [player.to_dict() for player in self.players],
+            "removed_bullet_ids": list(self.removed_bullet_ids),
+            "new_bullets": [bullet.to_dict() for bullet in self.new_bullets_appended],
+        }
 
 
 # Data that needs to be sent once to the client, at the beginning of the game
@@ -138,7 +164,7 @@ class State:
                 player.movement_dir = direction
 
     # Called from outside
-    def set_player_rotation(self, player_uuid: str, rotation: Vec2):
+    def set_player_rotation(self, player_uuid: str, rotation: float):
         for player in self.players:
             if player.uuid == player_uuid:
                 player.rotation = rotation

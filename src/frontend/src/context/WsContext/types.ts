@@ -14,3 +14,23 @@ export interface PlayerListUpdatePacket {
         }[];
     }
 }
+
+export interface GameStartPacket {
+    type: "game_start";
+    data: {
+        obstacles: {
+            x: number;
+            y: number;
+            size: {
+                x: number;
+                y: number;
+            };
+        }[];
+        players: {
+            id: string;
+            x: number;
+            y: number;
+            heading: number;
+        }[];
+    }
+}

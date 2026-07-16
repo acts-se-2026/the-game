@@ -4,6 +4,7 @@ from app.auth.auth import getCurrentUser
 from app.auth.types import SessionPayload
 from game.backendConnections import connectionManager
 from game.backendConnections.room import Room
+from game.vector import Vec2
 
 wsRouter = APIRouter(prefix="/api/ws", tags=["ws"])
 
@@ -22,8 +23,36 @@ async def websocket_endpoint(websocket: WebSocket, user: SessionPayload = Depend
     try:
         while True:
             data = await websocket.receive_json() 
-            
-            print(f"Received data from user {user.session_id} in room {roomId}: {data}")
+            dataType = data.get("type")
+
+            match dataType:
+                case "game_start":
+                    room.startGame()
+                case "player_move":
+                    if not room.isRunning:
+                        continue
+                    playerId = user.session_id
+                    data = data.get("data")
+                    movementX = data.get("x")
+                    movementY = data.get("y")
+                    movementVector = Vec2(movementX, movementY)
+                    
+                    gameState = room.gameState
+                    if gameState is None:
+                        continue
+                    gameState.set_player_movement_dir(playerId, movementVector)
+                case "player_aim":
+                    if not room.isRunning:
+                        continue
+                    playerId = user.session_id
+                    data = data.get("data")
+                    heading = data.get("heading")
+                    
+                    gameState = room.gameState
+                    if gameState is None:
+                        continue
+                    gameState.set_player_rotation(playerId, heading)
+
             
     except WebSocketDisconnect:
         room.disconnect(websocket)
