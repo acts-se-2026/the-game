@@ -88,6 +88,11 @@ class GameInfo:
 # - add players 
 # - do anything you want
 class State:
+    # Creates a State that's ready to run a real game
+    def init_populated(player_uuids: list[str]):
+        s = State(State.obstacle_generator())
+        s.add_players_at_random_positions(player_uuids)
+        return s
 
     # Generates obstacles in a box grid
     def obstacle_generator():
