@@ -6,9 +6,9 @@ WORKDIR /build
 # Install dependencies
 COPY . .
 
-COPY ./.env.example .env
+COPY .env.example .env
 
-RUN sed -i 's/localhost/backend/g' .env
+RUN sed -i 's/localhost:8000/89.169.113.154/g' .env
 
 RUN npm install
 RUN npm run build
