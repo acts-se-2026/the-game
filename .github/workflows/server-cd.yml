@@ -1,0 +1,52 @@
+name: Push docker images
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Build backend image
+        run: docker build src/backend --tag backend
+
+      - name: Build frontend image
+        run: docker build src/frontend --tag frontend
+
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push image to Github Packages
+        run: |
+          ORG_ADDRESS=ghcr.io/acts-se-2026
+
+          docker tag backend $ORG_ADDRESS/the-game-backend:latest
+          docker push $ORG_ADDRESS/the-game-backend:latest
+
+          docker tag frontend $ORG_ADDRESS/the-game-frontend:latest
+          docker push $ORG_ADDRESS/the-game-frontend:latest
+
+      - name: Connect to the server
+        run: |
+          mkdir -p /home/runner/.ssh
+          ssh-keyscan 89.169.113.154 >> /home/runner/.ssh/known_hosts
+          echo "${{ secrets.SSH_KEY }}" > /home/runner/.ssh/id_ed25519
+          chmod 600 /home/runner/.ssh/id_ed25519
+          ssh dev@89.169.113.154 "echo HELLO > hello.txt"
+          echo "${{ secrets.GITHUB_TOKEN }}" | ssh dev@89.169.113.154 "docker login ghcr.io -u ${{ github.actor }} --password-stdin"
+
+          ssh dev@89.169.113.154 "docker compose down"
+          scp docker-compose.yml dev@89.169.113.154:/home/dev/
+          ssh dev@89.169.113.154 "docker compose pull && docker compose up -d"
