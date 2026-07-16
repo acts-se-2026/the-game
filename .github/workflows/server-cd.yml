@@ -37,3 +37,11 @@ jobs:
 
           docker tag frontend $ORG_ADDRESS/the-game-frontend:latest
           docker push $ORG_ADDRESS/the-game-frontend:latest
+
+      - name: Connect to the server
+        run: |
+          mkdir -p /home/runner/.ssh
+          ssh-keyscan 89.169.113.154 >> /home/runner/.ssh/known_hosts
+          echo "${{ secrets.SSH_KEY }}" > /home/runner/.ssh/id_ed25519
+          chmod 600 /home/runner/.ssh/id_ed25519
+          ssh dev@89.169.113.154 "echo HELLO > hello.txt"
