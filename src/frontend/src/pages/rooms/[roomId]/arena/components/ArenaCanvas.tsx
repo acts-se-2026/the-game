@@ -45,7 +45,7 @@ export default function ArenaCanvas({ state, onAim, onShoot }: ArenaCanvasProps)
                     width: ARENA_SIZE,
                     height: ARENA_SIZE,
                     backgroundAlpha: 0,
-                    antialias: true,
+                    antialias: false,
                 });
 
                 if (!isMounted || !hostRef.current) {
@@ -91,7 +91,7 @@ export default function ArenaCanvas({ state, onAim, onShoot }: ArenaCanvasProps)
     return (
         <div
             ref={hostRef}
-            className="aspect-square w-full max-w-[600px] overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/30 [&_canvas]:block [&_canvas]:size-full [&_canvas]:cursor-crosshair [&_canvas]:touch-none"
+            className="aspect-square w-full max-w-[600px] overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/30 [&_canvas]:block [&_canvas]:size-full [&_canvas]:cursor-crosshair [&_canvas]:touch-none [&_canvas]:[image-rendering:pixelated]"
             role="application"
             aria-label="Game arena"
         />

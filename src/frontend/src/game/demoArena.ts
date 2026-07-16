@@ -14,4 +14,5 @@ export const demoArena: ArenaState = {
     { id: 'enemy-1', x: 505, y: 205, heading: Math.PI * 0.72, color: '#fb7185' },
     { id: 'enemy-2', x: 327, y: 505, heading: -Math.PI / 2, color: '#fbbf24' },
   ],
+  bullets: [],
 }
