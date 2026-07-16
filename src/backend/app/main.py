@@ -1,6 +1,12 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.config.config import config
+
 from app.routes.test import testRouter
 from app.routes.ws import wsRouter
+from app.routes.auth import authRouter
+from app.routes.rooms import roomsRouter
 
 ShowDocs = True
 
@@ -10,7 +16,16 @@ app = FastAPI(
     redoc_url="/api/redoc" if ShowDocs else None
 )
 
-# ADD CORS LATER TODO
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[config.FRONTEND_URL],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 app.include_router(testRouter)
 app.include_router(wsRouter)
+app.include_router(authRouter)
+app.include_router(roomsRouter)

@@ -7,6 +7,7 @@ interface WsConnectionContextType {
     sendMessage: (type: string, data?: unknown) => void;
     connectWs: (path: string) => void;
     isConnected: boolean;
+    disconnectWs: () => void;
 }
 
 const WsConnectionContext = createContext<WsConnectionContextType | null>(null);
@@ -36,7 +37,9 @@ export function WebSocketProvider({ children }: ProviderProps) {
 
         ws.onclose = () => {
             console.log("WebSocket Disconnected");
-            socketRef.current = null;
+            if (socketRef.current === ws) {
+                socketRef.current = null;
+            }
             setIsConnected(false);
         };
 
@@ -46,6 +49,16 @@ export function WebSocketProvider({ children }: ProviderProps) {
 
         socketRef.current = ws;
     };
+
+    const disconnectWs = () => {
+        const currentSocket = socketRef.current;
+
+        if (currentSocket) {
+            socketRef.current = null;
+            setIsConnected(false);
+            currentSocket.close();
+        }
+    }
 
     useEffect(() => {
         return () => {
@@ -67,7 +80,7 @@ export function WebSocketProvider({ children }: ProviderProps) {
     };
 
     return (
-        <WsConnectionContext.Provider value={{ socket: socketRef, sendMessage, connectWs, isConnected }}>
+        <WsConnectionContext.Provider value={{ socket: socketRef, sendMessage, connectWs, isConnected, disconnectWs }}>
             {children}
         </WsConnectionContext.Provider>
     );

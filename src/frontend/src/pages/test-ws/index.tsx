@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { useWsConnection } from "../../components/WsContext";
-import type { WsUnknownPacket } from "../../components/WsContext/types";
+import { useWsConnection } from "../../context/WsContext";
+import type { WsUnknownPacket } from "../../context/WsContext/types";
 
 const TestWSPage = () => {
     const { socket, sendMessage, connectWs, isConnected } = useWsConnection();
     const [messages, setMessages] = useState<string[]>([]);
     const [inputContent, setInputContent] = useState<string>("");
 
-    const wsPath = import.meta.env.VITE_WS_PATH || "/api/ws/";
+    const wsPath = import.meta.env.VITE_WS_PATH || "/api/ws";
 
     useEffect(() => {
         const currentSocket = socket.current;
