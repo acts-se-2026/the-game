@@ -9,7 +9,7 @@ LEVEL_SIZE = Vec2(600, 600)
 GRID_SIZE = Vec2(5, 5)
 GRID_BOX_SIZE = Vec2(LEVEL_SIZE.x/GRID_SIZE.x, LEVEL_SIZE.y/GRID_SIZE.y)
 
-OBSACLE_CNT=10 
+OBSTACLE_CNT=10 
 
 PLAYER_SIZE = Vec2(36, 36)
 PLAYER_SPEED = 10
@@ -129,7 +129,7 @@ class State:
         obstacles = [] # list of Box class
         obstacles_grid_pos = set() #position of each obsticle in grid: (0, 0) is top left (9, 9) would be bottom right
 
-        for i in range(OBSACLE_CNT):
+        for i in range(OBSTACLE_CNT):
             x = random.randint(0, GRID_SIZE.x-1)
             y = random.randint(0, GRID_SIZE.y-1)
 
