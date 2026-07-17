@@ -189,7 +189,7 @@ class State:
                         queue.append((nx, ny))
 
         #All open grids have been filled
-        if len(visited) == GRID_SIZE.x*GRID_SIZE*y - len(obstacles_grid_pos):
+        if len(visited) == GRID_SIZE.x*GRID_SIZE.y - len(obstacles_grid_pos):
             return True
         return False
 
