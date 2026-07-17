@@ -333,6 +333,13 @@ class State:
                     chest.used = True
                     
 
+            #CHECKS COLLISION WITH HEALTH CHEST
+            for chest in self.chests:
+                if Box.area_colliding(player.get_collision_box(), chest.box):
+                    player.hp += chest.health
+                    chest.used = True
+                    
+
             
         # prepare information about new bullets
         new_bullets = []
