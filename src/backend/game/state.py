@@ -6,10 +6,10 @@ import random
 # positions:  (0, 0) is top-left, value in pixels
 
 LEVEL_SIZE = Vec2(600, 600)
-GRID_SIZE = Vec2(10, 10)
+GRID_SIZE = Vec2(5, 5)
 GRID_BOX_SIZE = Vec2(LEVEL_SIZE.x/GRID_SIZE.x, LEVEL_SIZE.y/GRID_SIZE.y)
 
-OBSACLE_CNT=20 
+OBSACLE_CNT=8
 
 PLAYER_SIZE = Vec2(30, 30)
 PLAYER_SPEED = 10
