@@ -24,7 +24,8 @@ jobs:
 
       - name: Build frontend image
         run: |
-          sed -i 's/localhost:8000/89.169.113.154/g' src/frontend/.env.example
+          sed -i 's!ws://localhost:8000!wss://killordie.mooo.com!g' src/frontend/.env.example
+          sed -i 's!http://localhost:8000!https://killordie.mooo.com!g' src/frontend/.env.example
           docker build src/frontend --tag frontend
         
 
@@ -44,12 +45,12 @@ jobs:
       - name: Connect to the server
         run: |
           mkdir -p /home/runner/.ssh
-          ssh-keyscan 89.169.113.154 >> /home/runner/.ssh/known_hosts
+          ssh-keyscan killordie.mooo.com >> /home/runner/.ssh/known_hosts
           echo "${{ secrets.SSH_KEY }}" > /home/runner/.ssh/id_ed25519
           chmod 600 /home/runner/.ssh/id_ed25519
-          ssh dev@89.169.113.154 "echo HELLO > hello.txt"
-          echo "${{ secrets.GITHUB_TOKEN }}" | ssh dev@89.169.113.154 "docker login ghcr.io -u ${{ github.actor }} --password-stdin"
+          ssh dev@killordie.mooo.com "echo HELLO > hello.txt"
+          echo "${{ secrets.GITHUB_TOKEN }}" | ssh dev@killordie.mooo.com "docker login ghcr.io -u ${{ github.actor }} --password-stdin"
 
-          ssh dev@89.169.113.154 "docker compose down"
-          scp docker-compose.yml dev@89.169.113.154:/home/dev/
-          ssh dev@89.169.113.154 "docker compose pull && docker compose up -d"
+          ssh dev@killordie.mooo.com "docker compose down"
+          scp docker-compose.yml dev@killordie.mooo.com:/home/dev/
+          ssh dev@killordie.mooo.com "docker compose pull && docker compose up -d"

@@ -3,8 +3,12 @@ services:
     image: ghcr.io/acts-se-2026/the-game-frontend:latest
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "443:443"
     
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+  
  
   backend:
     image: ghcr.io/acts-se-2026/the-game-backend:latest
@@ -12,4 +16,10 @@ services:
 
     volumes:
       - .env.backend:/build/.env
+  
+  volumes:
+  caddy_data:
+    external: false
+  caddy_config:
+    external: false
       
