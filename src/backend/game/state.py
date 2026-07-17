@@ -88,16 +88,18 @@ class Bullet:
 
 
 class StateDiff:
-    def __init__(self, players: list[Player], removed_bullet_ids: list[int], new_bullets_appended: list[Bullet]):
+    def __init__(self, players: list[Player], removed_bullet_ids: list[int], new_bullets_appended: list[Bullet], explosion_positions: list[Vec2]):
         self.removed_bullet_ids = removed_bullet_ids # list of int
         self.new_bullets_appended = new_bullets_appended # list of Bullet
         self.players = players # list of Player
+        self.explosion_positions = explosion_positions # list of Vec2
 
     def to_dict(self):
         return {
             "players": [player.to_dict() for player in self.players],
             "removed_bullet_ids": list(self.removed_bullet_ids),
             "new_bullets": [bullet.to_dict() for bullet in self.new_bullets_appended],
+            "explosion_positions": [pos.to_dict() for pos in self.explosion_positions],
         }
 
 
@@ -288,9 +290,18 @@ class State:
                     player.hit()
                     removed_bullet_ids.add(bullet.id)
                     break # this bullet cannot hit any other players
-        
+
+        explosion_positions = []
+
         # remove dead players
-        self.players = [player for player in self.players if player.hp > 0]
+        alive_players = []
+        for player in self.players: 
+            if player.hp <= 0:
+                explosion_positions.append(player.pos)
+            else:
+                alive_players.append(player)
+
+        self.players = alive_players
 
         # remove dead bullets
         self.bullets = [bullet for bullet in self.bullets if bullet.id not in removed_bullet_ids]
@@ -298,7 +309,12 @@ class State:
         if len(self.players) <= 1:
             self.end_game()
 
-        return StateDiff(players=self.players, removed_bullet_ids=list(removed_bullet_ids), new_bullets_appended=new_bullets)
+        return StateDiff(
+            players=self.players,
+            removed_bullet_ids=list(removed_bullet_ids),
+            new_bullets_appended=new_bullets,
+            explosion_positions=explosion_positions
+        )
 
 
     def is_box_in_obstacle(self, box: Box):

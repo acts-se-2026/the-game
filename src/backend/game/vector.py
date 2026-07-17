@@ -43,6 +43,12 @@ class Vec2:
             return Vec2.ZERO
         return self / self.length()
 
+    def to_dict(self):
+        return {
+            "x": self.x,
+            "y": self.y
+        }
+
 
 Vec2.ONE = Vec2(1, 1)
 Vec2.ZERO = Vec2(0, 0)
