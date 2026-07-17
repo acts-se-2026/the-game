@@ -18,3 +18,4 @@ COPY --from=builder /build/dist /srv
 COPY conf/Caddyfile /etc/caddy/Caddyfile
 
 EXPOSE 80
+EXPOSE 443

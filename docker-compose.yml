@@ -19,8 +19,8 @@ services:
     volumes:
       - .env.backend:/build/.env
   
-  volumes:
-    caddy_data:
-    caddy_config:
+volumes:
+  caddy_data:
+  caddy_config:
       
       
