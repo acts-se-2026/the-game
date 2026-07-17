@@ -12,6 +12,7 @@ GRID_BOX_SIZE = Vec2(LEVEL_SIZE.x/GRID_SIZE.x, LEVEL_SIZE.y/GRID_SIZE.y)
 OBSTACLE_CNT=10 
 
 PLAYER_SIZE = Vec2(36, 36)
+CANNON_END_RADIUS = 36 + 16
 PLAYER_SPEED = 10
 SHOOTING_DELAY = 5
 
@@ -245,7 +246,8 @@ class State:
         print(f"Player {player_uuid} is trying to shoot a bullet at frame {self.current_frame}")
         for player in self.players:
             if player.uuid == player_uuid and self.current_frame - player.last_shot_time > SHOOTING_DELAY:
-                self.bullets.append(Bullet(player.pos, player.get_shooting_dir(), player.uuid))
+                direction = player.get_shooting_dir()
+                self.bullets.append(Bullet(player.pos + direction * CANNON_END_RADIUS, direction, player.uuid))
                 self.unsent_bullet_ids.append(self.bullets[-1].id)
                 player.last_shot_time = self.current_frame
 
