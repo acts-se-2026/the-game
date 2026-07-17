@@ -33,6 +33,12 @@ class HealthChest:
         self.box = Box(self.pos - HEALTH_CHEST_SIZE / 2, HEALTH_CHEST_SIZE)
 
         self.used = False
+    
+    def to_dict(self):
+        return {
+            "x": self.pos.x,
+            "y": self.pos.y,
+        }
 
 class Box:
     def __init__(self, pos: Vec2, size: Vec2):
@@ -105,16 +111,18 @@ class Bullet:
 
 
 class StateDiff:
-    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[Vec2]):
+    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[Vec2], allChests : list[HealthChest]):
         self.allBullets = allBullets # list of Bullet
         self.players = players # list of Player
         self.explosion_positions = explosion_positions # list of Vec2
+        self.allChests = allChests
 
     def to_dict(self):
         return {
             "players": [player.to_dict() for player in self.players],
             "bullets": [bullet.to_dict() for bullet in self.allBullets],
             "explosion_positions": [pos.to_dict() for pos in self.explosion_positions],
+            "chests": [chest.to_dict() for chest in self.allChests],
         }
 
 
@@ -330,17 +338,8 @@ class State:
             for chest in self.chests:
                 if Box.area_colliding(player.get_collision_box(), chest.box):
                     player.hp += chest.health
-                    chest.used = True
-                    
+                    chest.used = True   
 
-            #CHECKS COLLISION WITH HEALTH CHEST
-            for chest in self.chests:
-                if Box.area_colliding(player.get_collision_box(), chest.box):
-                    player.hp += chest.health
-                    chest.used = True
-                    
-
-            
         # prepare information about new bullets
         new_bullets = []
         for id in self.unsent_bullet_ids:
@@ -392,7 +391,8 @@ class State:
         return StateDiff(
             players=self.players,
             allBullets=self.bullets,
-            explosion_positions=explosion_positions
+            explosion_positions=explosion_positions,
+            allChests=self.chests
         )
 
 
@@ -411,4 +411,3 @@ class State:
 
     def end_game(self):
         pass
-
