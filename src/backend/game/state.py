@@ -16,11 +16,11 @@ BULLET_SIZE = Vec2(5, 5)
 
 
 class Box:
-    def __init__(self, pos, size):
+    def __init__(self, pos: Vec2, size: Vec2):
         self.pos = pos
         self.size = size
 
-    def area_colliding(box1, box2):
+    def area_colliding(box1: Box, box2: Box):
         return not (
             box1.pos.x + box1.size.x < box2.pos.x # 1 is too much to the left, so it doesn't collide
             or box1.pos.x > box2.pos.x + box2.size.x # 1 is too much to the right, so it doesn't collide
@@ -30,7 +30,7 @@ class Box:
 
 
 class Player:
-    def __init__(self, uuid, pos):
+    def __init__(self, uuid: str, pos: Vec2):
         self.uuid = uuid
 
         self.hp = 100
@@ -48,6 +48,15 @@ class Player:
 
     def get_collision_box(self):
         return Box(self.pos - PLAYER_SIZE / 2, PLAYER_SIZE)
+
+    def to_dict(self):
+        return {
+            "id": self.uuid,
+            "x": self.pos.x,
+            "y": self.pos.y,
+            "heading": self.rotation,
+            "hp": self.hp,
+        }
         
 
 
@@ -55,7 +64,7 @@ class Player:
 class Bullet:
     next_id = 0
 
-    def __init__(self, pos, movement_dir, owner_uuid):
+    def __init__(self, pos: Vec2, movement_dir: Vec2, owner_uuid: str):
         self.pos = pos
         self.movement_dir = movement_dir
         self.owner_uuid = owner_uuid
@@ -66,18 +75,35 @@ class Bullet:
     def get_collision_box(self):
         return Box(self.pos - BULLET_SIZE / 2, BULLET_SIZE)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "x": self.pos.x,
+            "y": self.pos.y,
+            "dx": self.movement_dir.x,
+            "dy": self.movement_dir.y,
+            "owner": self.owner_uuid,
+        }
+
 
 
 class StateDiff:
-    def __init__(self, players, removed_bullet_ids, new_bullets_appended):
+    def __init__(self, players: list[Player], removed_bullet_ids: list[int], new_bullets_appended: list[Bullet]):
         self.removed_bullet_ids = removed_bullet_ids # list of int
         self.new_bullets_appended = new_bullets_appended # list of Bullet
         self.players = players # list of Player
 
+    def to_dict(self):
+        return {
+            "players": [player.to_dict() for player in self.players],
+            "removed_bullet_ids": list(self.removed_bullet_ids),
+            "new_bullets": [bullet.to_dict() for bullet in self.new_bullets_appended],
+        }
+
 
 # Data that needs to be sent once to the client, at the beginning of the game
 class GameInfo:
-    def __init__(self, level_size, obstacles):
+    def __init__(self, level_size: Vec2, obstacles: list[Box]):
         self.level_size = level_size # list of Vec2
         self.obstacles = obstacles # list of Box
 
@@ -174,7 +200,7 @@ class State:
         self.players = []
 
         
-    def add_players_at_random_positions(self, player_uuids):
+    def add_players_at_random_positions(self, player_uuids: list[str]):
         for uuid in player_uuids:
             player = Player(uuid, Vec2.ZERO)
 
@@ -186,7 +212,7 @@ class State:
 
             self.players.append(player)
 
-    def add_player(self, player):
+    def add_player(self, player: Player):
         self.players.append(player)
         return player
 
@@ -196,19 +222,19 @@ class State:
         return GameInfo(LEVEL_SIZE, self.obstacles)
 
     # Called from outside
-    def set_player_movement_dir(self, player_uuid, direction):
+    def set_player_movement_dir(self, player_uuid: str, direction: Vec2):
         for player in self.players:
             if player.uuid == player_uuid:
                 player.movement_dir = direction
 
     # Called from outside
-    def set_player_rotation(self, player_uuid, rotation):
+    def set_player_rotation(self, player_uuid: str, rotation: float):
         for player in self.players:
             if player.uuid == player_uuid:
                 player.rotation = rotation
 
     # Called from outside
-    def try_shoot_player_bullet(self, player_uuid):
+    def try_shoot_player_bullet(self, player_uuid: str):
         for player in self.players:
             if player.uuid == player_uuid and self.current_frame - player.last_shot_time > SHOOTING_DELAY:
                 self.bullets.append(Bullet(player.pos, player.get_shooting_dir(), player.uuid))
@@ -275,7 +301,7 @@ class State:
         return StateDiff(players=self.players, removed_bullet_ids=list(removed_bullet_ids), new_bullets_appended=new_bullets)
 
 
-    def is_box_in_obstacle(self, box):
+    def is_box_in_obstacle(self, box: Box):
         for obstacle_box in self.obstacles:
             if Box.area_colliding(obstacle_box, box):
                 return True

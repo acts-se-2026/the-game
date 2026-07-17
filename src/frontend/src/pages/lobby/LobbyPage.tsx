@@ -1,20 +1,42 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import PageTitleTemplate from "../../components/PageTitleTemplate";
 import RoomCard, { type PublicRoom } from "./components/RoomCard";
 import { useUser } from "../../context/UserContext";
+import { backendApi } from "../../api/backend";
 
-const initialRooms: PublicRoom[] = [
-    { id: "NOVA-21", name: "Nova Station", players: 3, capacity: 6 },
-    { id: "DUST-08", name: "Dust Bowl", players: 2, capacity: 4 },
-    { id: "CORE-77", name: "Core Breach", players: 5, capacity: 8 },
-];
+type FetchRoomsResponse = {
+    rooms: PublicRoom[];
+};
+
+type CreateRoomResponse = {
+    room_id: string;
+};
 
 export default function LobbyPage() {
     const navigate = useNavigate();
-    const { username } = useUser();
-    const [rooms] = useState(initialRooms);
-    const [lastRefresh, setLastRefresh] = useState("Ready");
+    const { user } = useUser();
+    const [rooms, setRooms] = useState<PublicRoom[]>([]);
+
+    useEffect(() => {
+        backendApi.get<FetchRoomsResponse>("/api/rooms").then((response) => {
+            setRooms(response.data.rooms);
+        }).catch((error) => {
+            console.error("Failed to fetch rooms:", error);
+        });
+    }, []);
+
+    const handleJoinRoom = (roomId: string) => {
+        navigate(`/rooms/${roomId}`);
+    }
+
+    const handleCreateRoom = () => {
+        backendApi.post<CreateRoomResponse>("/api/rooms/create").then((response) => {
+            navigate(`/rooms/${response.data.room_id}`);
+        }).catch((error) => {
+            console.error("Failed to create room:", error);
+        });
+    }
 
     return (
         <div className="flex flex-col items-start min-h-screen px-6 py-12">
@@ -22,32 +44,26 @@ export default function LobbyPage() {
                 <PageTitleTemplate eyebrow="Lobby" title="Public rooms" description="Join an open match or create a room for your squad." />
 
                 <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="font-bold text-slate-300">Playing as {username}</p>
+                    <p className="font-bold text-slate-300">Playing as {user?.username}</p>
                     <div className="flex flex-wrap gap-3">
                         <button
                             type="button"
-                            onClick={() => setLastRefresh("Updated just now")}
-                            className="rounded-xl border border-slate-700 px-4 py-2.5 font-bold text-slate-200 transition hover:bg-slate-800"
-                        >
-                            Refresh rooms
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => navigate(`/rooms/ROOM-${Math.floor(Math.random() * 1000)}`)}
+                            onClick={handleCreateRoom}
                             className="rounded-xl bg-blue-500 px-4 py-2.5 font-black text-white transition hover:bg-blue-400"
                         >
                             Create room
                         </button>
                     </div>
                 </div>
-                <p className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-500" aria-live="polite">
-                    {lastRefresh}
-                </p>
-                <ul className="grid gap-4 w-full">
-                    {rooms.map((room) => (
-                        <RoomCard key={room.id} room={room} onJoin={(roomId) => navigate(`/rooms/${roomId}`)} />
-                    ))}
-                </ul>
+                {rooms.length === 0 ? (
+                    <p className="text-slate-400">No rooms available</p>
+                ) : (
+                    <ul className="grid gap-4 w-full">
+                        {rooms.map((room) => (
+                            <RoomCard key={room.room_id} room={room} onJoin={handleJoinRoom} />
+                        ))}
+                    </ul>
+                )}
             </div>
         </div>
     );

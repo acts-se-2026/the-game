@@ -1,10 +1,14 @@
 # STAGE 1: building
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /build
 
 # Install dependencies
 COPY . .
+
+COPY .env.example .env
+
+RUN sed -i 's/localhost:8000/89.169.113.154/g' .env
 
 RUN npm install
 RUN npm run build

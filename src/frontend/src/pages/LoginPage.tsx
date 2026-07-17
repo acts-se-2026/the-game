@@ -5,11 +5,15 @@ import { useUser } from "../context/UserContext";
 
 export default function LoginPage() {
     const navigate = useNavigate();
-    const { setUsername: setGlobalUsername } = useUser();
+    const { login, user } = useUser();
     const [username, setUsername] = useState("");
     const [error, setError] = useState("");
 
-    const enterLobby = (event: FormEvent<HTMLFormElement>) => {
+    if(user) {
+        navigate("/lobby");
+    }
+
+    const enterLobby = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const cleanUsername = username.trim();
         if (!cleanUsername) {
@@ -17,8 +21,8 @@ export default function LoginPage() {
             return;
         }
 
-        setGlobalUsername(cleanUsername);
-        navigate("/lobby/");
+        await login(cleanUsername);
+        navigate("/lobby");
     };
 
     return (
@@ -26,7 +30,7 @@ export default function LoginPage() {
             <PageTitleTemplate
                 eyebrow="Top-down shooter"
                 title="Enter the arena"
-                description="Choose a callsign, find a room, and be the last tank standing."
+                description="Choose a username, find a room, and be the last tank standing."
             />
 
             <form onSubmit={enterLobby} className="max-w-lg rounded-2xl border border-slate-800 bg-slate-900/85 p-6 shadow-2xl shadow-black/20">
@@ -42,7 +46,7 @@ export default function LoginPage() {
                     }}
                     maxLength={24}
                     autoComplete="nickname"
-                    placeholder="Your callsign"
+                    placeholder="Your username"
                     className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
                 />
                 {error && (

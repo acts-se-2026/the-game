@@ -34,28 +34,22 @@ export class ArenaRenderer {
     }
 
     private syncObstacles(data: Obstacle[]) {
-        const currentIds = new Set(data.map(o => o.id));
-        
-        for (const [id, graphics] of this.obstacles.entries()) {
-            if (!currentIds.has(id)) {
-                graphics.destroy(true);
-                this.obstacles.delete(id);
-            }
+        for (const graphics of this.obstacles.values()) {
+            graphics.destroy(true);
         }
+        this.obstacles.clear();
 
-        for (const obstacle of data) {
-            let graphics = this.obstacles.get(obstacle.id);
-            if (!graphics) {
-                graphics = new Graphics();
-                this.world.addChild(graphics);
-                this.obstacles.set(obstacle.id, graphics);
-            }
+        data.forEach((obstacle, idx) => {
+            const key = String(idx);
+            const graphics = new Graphics();
+            this.world.addChild(graphics);
+            this.obstacles.set(key, graphics);
 
             graphics.clear()
-                .rect(obstacle.x, obstacle.y, obstacle.size, obstacle.size).fill({ color: 0x334155 })
-                .rect(obstacle.x + 1.5, obstacle.y + 1.5, obstacle.size - 3, obstacle.size - 3).stroke({ color: 0x64748b, width: 3 })
-                .rect(obstacle.x + 5, obstacle.y + 5, obstacle.size - 10, 6).fill({ color: 0xffffff, alpha: 0.06 });
-        }
+                .rect(obstacle.x, obstacle.y, obstacle.size.x, obstacle.size.y).fill({ color: 0x334155 })
+                .rect(obstacle.x + 1.5, obstacle.y + 1.5, obstacle.size.x - 3, obstacle.size.y - 3).stroke({ color: 0x64748b, width: 3 })
+                .rect(obstacle.x + 5, obstacle.y + 5, obstacle.size.x - 10, 6).fill({ color: 0xffffff, alpha: 0.06 });
+        });
     }
 
     private syncPlayers(data: Player[]) {

@@ -10,6 +10,10 @@ uv sync
 ```bash
 uv run uvicorn app.main:app --reload
 ```
+or
+```bash
+uv run python -m uvicorn app.main:app --reload
+``
 
 # Run in prod (for later)
 ```bash
