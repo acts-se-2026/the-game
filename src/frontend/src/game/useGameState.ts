@@ -9,7 +9,7 @@ import { processNewState } from "./processNewState";
 
 const ENEMY_COLORS = ["#fb7185", "#fbbf24", "#34d399", "#a78bfa", "#f472b6"];
 
-function buildArenaState(data: GameStartPacket["data"] | undefined, localId: string | undefined): ArenaState | null {
+export function buildArenaState(data: GameStartPacket["data"] | undefined, localId: string | undefined): ArenaState | null {
     if (!data || !Array.isArray(data.players)) return null;
 
     let enemyIndex = 0;
@@ -23,6 +23,7 @@ function buildArenaState(data: GameStartPacket["data"] | undefined, localId: str
             const isLocal = localId != null && player.id === localId;
             return {
                 id: player.id,
+                username: player.username || player.id,
                 x: player.x,
                 y: player.y,
                 heading: player.heading,

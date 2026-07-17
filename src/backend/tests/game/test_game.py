@@ -1,8 +1,40 @@
 import pytest
+import asyncio
+from app.auth.types import SessionPayload
+from game.backendConnections.room import Room
 from game.state import Player, Box, State
 from game.state import PLAYER_SIZE, PLAYER_SPEED, SHOOTING_DELAY, BULLET_SPEED, BULLET_SIZE
 from game.vector import Vec2
 import math
+
+
+class FakeWebSocket:
+    def __init__(self):
+        self.messages = []
+
+    async def send_json(self, message):
+        self.messages.append(message)
+
+
+def test_game_start_includes_player_names():
+    async def start_game():
+        room = Room('room-id')
+        first_socket = FakeWebSocket()
+        second_socket = FakeWebSocket()
+        room.connect(first_socket, SessionPayload(username='Alice', session_id='player-1', exp=0))
+        room.connect(second_socket, SessionPayload(username='Bob', session_id='player-2', exp=0))
+
+        room.startGame()
+        await asyncio.sleep(0.01)
+        room.stopGame()
+
+        game_start = next(message for message in first_socket.messages if message['type'] == 'game_start')
+        assert {(player['id'], player['username']) for player in game_start['data']['players']} == {
+            ('player-1', 'Alice'),
+            ('player-2', 'Bob'),
+        }
+
+    asyncio.run(start_game())
 
 def test_collisions():
     box1 = Box(Vec2(0, 0), Vec2(5, 5))

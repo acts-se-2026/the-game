@@ -11,6 +11,7 @@ export type Obstacle = {
 
 export type Player = {
   id: string
+  username: string
   x: number
   y: number
   /** Direction the player faces, measured in radians. Zero points right. */

@@ -28,6 +28,7 @@ export interface GameStartPacket {
         }[];
         players: {
             id: string;
+            username?: string;
             x: number;
             y: number;
             heading: number;

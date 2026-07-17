@@ -6,6 +6,7 @@ export const processNewState = (newState: GameStartPacket["data"], currentState:
         const existingPlayer = currentState.players.find((p) => p.id === newPlayer.id);
         return {
             id: newPlayer.id,
+            username: newPlayer.username || existingPlayer?.username || newPlayer.id,
             x: newPlayer.x,
             y: newPlayer.y,
             heading: newPlayer.heading,

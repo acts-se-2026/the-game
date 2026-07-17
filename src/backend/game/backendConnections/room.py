@@ -24,7 +24,8 @@ class Room:
         self.gameLoopTask = asyncio.create_task(self.gameLoop())
 
         obstacles_data = [{"x": obs.pos.x, "y": obs.pos.y, "size": {"x": obs.size.x, "y": obs.size.y}} for obs in self.gameState.obstacles]
-        players_data = [{"id": player.uuid, "x": player.pos.x, "y": player.pos.y, "heading": player.rotation} for player in self.gameState.players]
+        usernames = {user.session_id: user.username for user in self.activeConnections.values()}
+        players_data = [{"id": player.uuid, "username": usernames[player.uuid], "x": player.pos.x, "y": player.pos.y, "heading": player.rotation} for player in self.gameState.players]
 
         asyncio.create_task(self.broadcast({"type": "game_start", "data": {
             "obstacles": obstacles_data,
