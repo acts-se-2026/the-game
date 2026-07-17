@@ -6,6 +6,10 @@ import random
 # positions:  (0, 0) is top-left, value in pixels
 
 LEVEL_SIZE = Vec2(600, 600)
+GRID_SIZE = Vec2(5, 5)
+GRID_BOX_SIZE = Vec2(LEVEL_SIZE.x/GRID_SIZE.x, LEVEL_SIZE.y/GRID_SIZE.y)
+
+OBSACLE_CNT=10 
 
 PLAYER_SIZE = Vec2(30, 30)
 PLAYER_SPEED = 10
@@ -130,16 +134,16 @@ class State:
         obstacles = [] # list of Box class
         obstacles_grid_pos = set() #position of each obsticle in grid: (0, 0) is top left (9, 9) would be bottom right
 
-        for i in range(25):
-            x = random.randint(0, 9)
-            y = random.randint(0, 9)
+        for i in range(OBSACLE_CNT):
+            x = random.randint(0, GRID_SIZE.x-1)
+            y = random.randint(0, GRID_SIZE.y-1)
 
             while (x, y) in obstacles_grid_pos:
-                x = random.randint(0, 9)
-                y = random.randint(0, 9)
+                x = random.randint(0, GRID_SIZE.x-1)
+                y = random.randint(0, GRID_SIZE.y-1)
             
             obstacles_grid_pos.add((x, y))
-            obstacles.append(Box(Vec2(x*60, y*60), Vec2(60, 60)))
+            obstacles.append(Box(Vec2(x*GRID_BOX_SIZE.x, y*GRID_BOX_SIZE.y), GRID_BOX_SIZE))
 
         #--CHECKS IF AN AREA IS BLOCKED BY OBSTACLES--#
         if State.check_map_validity(obstacles_grid_pos) == False:
@@ -155,8 +159,8 @@ class State:
         queue = []
 
         found = False
-        for y in range(10):
-            for x in range(10):
+        for y in range(GRID_SIZE.y-1):
+            for x in range(GRID_SIZE.x-1):
                 if (x, y) not in obstacles_grid_pos:
                     start = (x, y)
                     found=True
@@ -180,14 +184,14 @@ class State:
 
             for nx, ny in neighbours:
                 #is inside map
-                if 0 <= nx <= 9 and 0 <= ny <= 9:
+                if 0 <= nx <= GRID_SIZE.x-1 and 0 <= ny <= GRID_SIZE.y-1:
 
                     if (nx , ny) not in obstacles_grid_pos and (nx , ny) not in visited:
                         visited.add((nx, ny))
                         queue.append((nx, ny))
 
         #All open grids have been filled
-        if len(visited) == 100 - len(obstacles_grid_pos):
+        if len(visited) == GRID_SIZE.x*GRID_SIZE.y - len(obstacles_grid_pos):
             return True
         return False
 
