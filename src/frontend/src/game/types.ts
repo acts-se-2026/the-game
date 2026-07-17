@@ -1,10 +1,12 @@
 export const ARENA_SIZE = 600
 
 export type Obstacle = {
-  id: string
   x: number
   y: number
-  size: number
+  size:  {
+    x: number
+    y: number
+  }
 }
 
 export type Player = {

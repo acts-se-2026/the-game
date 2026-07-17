@@ -16,7 +16,6 @@ const TestWSPage = () => {
         const handleIncomingPacket = (event: MessageEvent) => {
             const packet = JSON.parse(event.data) as WsUnknownPacket;
 
-            console.log("Received Packet:", packet);
             setMessages((prev) => [...prev, `[${packet.type}] ${JSON.stringify(packet)}`]);
         };
 
