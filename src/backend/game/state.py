@@ -9,10 +9,11 @@ LEVEL_SIZE = Vec2(600, 600)
 GRID_SIZE = Vec2(5, 5)
 GRID_BOX_SIZE = Vec2(LEVEL_SIZE.x/GRID_SIZE.x, LEVEL_SIZE.y/GRID_SIZE.y)
 
-OBSACLE_CNT=8
+OBSTACLE_CNT=8
 
 PLAYER_SIZE = Vec2(36, 36)
-PLAYER_SPEED = 10
+CANNON_END_RADIUS = 36 + 16
+PLAYER_SPEED = 5
 SHOOTING_DELAY = 5
 
 BULLET_SPEED = 10
@@ -24,7 +25,7 @@ class Box:
         self.pos = pos
         self.size = size
 
-    def area_colliding(box1: "Box", box2:"Box"):
+    def area_colliding(box1: Box, box2: Box):
         return not (
             box1.pos.x + box1.size.x <= box2.pos.x # 1 is too much to the left, so it doesn't collide
             or box1.pos.x >= box2.pos.x + box2.size.x # 1 is too much to the right, so it doesn't collide
@@ -129,7 +130,7 @@ class State:
         obstacles = [] # list of Box class
         obstacles_grid_pos = set() #position of each obsticle in grid: (0, 0) is top left (9, 9) would be bottom right
 
-        for i in range(OBSACLE_CNT):
+        for i in range(OBSTACLE_CNT):
             x = random.randint(0, GRID_SIZE.x-1)
             y = random.randint(0, GRID_SIZE.y-1)
 
@@ -262,7 +263,8 @@ class State:
         print(f"Player {player_uuid} is trying to shoot a bullet at frame {self.current_frame}")
         for player in self.players:
             if player.uuid == player_uuid and self.current_frame - player.last_shot_time > SHOOTING_DELAY:
-                self.bullets.append(Bullet(player.pos, player.get_shooting_dir(), player.uuid))
+                direction = player.get_shooting_dir()
+                self.bullets.append(Bullet(player.pos + direction * CANNON_END_RADIUS, direction, player.uuid))
                 self.unsent_bullet_ids.append(self.bullets[-1].id)
                 player.last_shot_time = self.current_frame
 
