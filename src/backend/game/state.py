@@ -338,5 +338,3 @@ class State:
     def end_game(self):
         pass
 
-
-State.obstacle_generator()
