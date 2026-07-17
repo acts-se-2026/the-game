@@ -13,6 +13,8 @@ def getAllRooms():
     returnRooms = []
 
     for room in connectionManager.rooms.values():
+        if(room.isRunning):
+            continue
         returnRooms.append({
             "room_id": room.room_id,
             "player_count": len(room.activeConnections),
