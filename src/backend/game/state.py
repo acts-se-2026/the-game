@@ -234,6 +234,12 @@ class State:
             if player.uuid == player_uuid:
                 player.rotation = rotation
 
+    def kill_player(self, player_uuid: str):
+        for player in self.players:
+            if player.uuid == player_uuid:
+                player.hp = 0
+                return
+
     # Called from outside
     def try_shoot_player_bullet(self, player_uuid: str):
         print(f"Player {player_uuid} is trying to shoot a bullet at frame {self.current_frame}")

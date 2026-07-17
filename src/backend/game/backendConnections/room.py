@@ -66,6 +66,9 @@ class Room:
     
     def disconnect(self, websocket: WebSocket):
         if websocket in self.activeConnections:
+            user = self.activeConnections[websocket]
+            if self.isRunning and self.gameState is not None:
+                self.gameState.kill_player(user.session_id)
             del self.activeConnections[websocket]
         
         asyncio.create_task(self.broadcast({"type": "user_list", "data": self.getAllPlayers()}))

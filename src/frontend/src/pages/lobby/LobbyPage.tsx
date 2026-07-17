@@ -20,7 +20,7 @@ export default function LobbyPage() {
 
     useEffect(() => {
         backendApi.get<FetchRoomsResponse>("/api/rooms").then((response) => {
-            setRooms(response.data.rooms);
+            setRooms(Array.isArray(response.data.rooms) ? response.data.rooms : []);
         }).catch((error) => {
             console.error("Failed to fetch rooms:", error);
         });
