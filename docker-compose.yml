@@ -4,6 +4,8 @@ services:
     restart: unless-stopped
     ports:
       - "443:443"
+      - "80:80"
+      - "443:443/udp"
     
     volumes:
       - caddy_data:/data
@@ -18,8 +20,8 @@ services:
       - .env.backend:/build/.env
   
   volumes:
-  caddy_data:
-    external: false
-  caddy_config:
-    external: false
+    caddy_data:
+      external: false
+    caddy_config:
+      external: false
       
