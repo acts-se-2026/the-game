@@ -137,7 +137,7 @@ class State:
                 y = random.randint(0, 9)
             
             obstacles_grid_pos.add((x, y))
-            obstacles.append(Box(Vec2(x*60, y*60), 60))
+            obstacles.append(Box(Vec2(x*60, y*60), Vec2(60, 60)))
 
         #--CHECKS IF AN AREA IS BLOCKED BY OBSTACLES--#
         if State.check_map_validity(obstacles_grid_pos) == False:
