@@ -11,7 +11,7 @@ GRID_BOX_SIZE = Vec2(LEVEL_SIZE.x/GRID_SIZE.x, LEVEL_SIZE.y/GRID_SIZE.y)
 
 OBSACLE_CNT=10 
 
-PLAYER_SIZE = Vec2(30, 30)
+PLAYER_SIZE = Vec2(36, 36)
 PLAYER_SPEED = 10
 SHOOTING_DELAY = 5
 
@@ -26,10 +26,10 @@ class Box:
 
     def area_colliding(box1: Box, box2: Box):
         return not (
-            box1.pos.x + box1.size.x < box2.pos.x # 1 is too much to the left, so it doesn't collide
-            or box1.pos.x > box2.pos.x + box2.size.x # 1 is too much to the right, so it doesn't collide
-            or box1.pos.y + box1.size.y < box2.pos.y # 1 is too far up, so it doesn't collide
-            or box1.pos.y > box2.pos.y + box2.size.y # 1 is too far down, so it doesn't collide
+            box1.pos.x + box1.size.x <= box2.pos.x # 1 is too much to the left, so it doesn't collide
+            or box1.pos.x >= box2.pos.x + box2.size.x # 1 is too much to the right, so it doesn't collide
+            or box1.pos.y + box1.size.y <= box2.pos.y # 1 is too far up, so it doesn't collide
+            or box1.pos.y >= box2.pos.y + box2.size.y # 1 is too far down, so it doesn't collide
         )
 
 
@@ -51,7 +51,7 @@ class Player:
         return Vec2(math.cos(self.rotation), math.sin(self.rotation))
 
     def get_collision_box(self):
-        return Box(self.pos - PLAYER_SIZE / 2, PLAYER_SIZE)
+        return Box(self.pos - PLAYER_SIZE // 2, PLAYER_SIZE)
 
     def to_dict(self):
         return {
@@ -146,7 +146,7 @@ class State:
             obstacles.append(Box(Vec2(x*GRID_BOX_SIZE.x, y*GRID_BOX_SIZE.y), GRID_BOX_SIZE))
 
         #--CHECKS IF AN AREA IS BLOCKED BY OBSTACLES--#
-        if State.check_map_validity(obstacles_grid_pos) == False:
+        if not State.check_map_validity(obstacles_grid_pos):
             return State.obstacle_generator()
         
         return obstacles
@@ -212,7 +212,7 @@ class State:
 
             # randomize the starting position 
             while True:
-                player.pos = Vec2(random.random() * LEVEL_SIZE.x, random.random() * LEVEL_SIZE.y)
+                player.pos = Vec2(random.randint(0, LEVEL_SIZE.x), random.randint(0, LEVEL_SIZE.y))
                 if not self.is_box_in_obstacle(player.get_collision_box()):
                     break
 
@@ -231,7 +231,7 @@ class State:
     def set_player_movement_dir(self, player_uuid: str, direction: Vec2):
         for player in self.players:
             if player.uuid == player_uuid:
-                player.movement_dir = direction
+                player.movement_dir = direction.normalized_or_zero()
 
     # Called from outside
     def set_player_rotation(self, player_uuid: str, rotation: float):
@@ -253,17 +253,27 @@ class State:
         self.current_frame += 1
 
         for player in self.players:
-            delta = PLAYER_SPEED * player.movement_dir
+            delta = (PLAYER_SPEED * player.movement_dir).rounded()
+
+            assert player.pos.is_int(), "Collision detection only works with integer coordinates"
+            assert not self.is_box_in_obstacle(player.get_collision_box())
 
             # try moving on the x axis
-            player.pos.x += delta.x
-            if self.is_box_in_obstacle(player.get_collision_box()):
-                player.pos.x -= delta.x
+            for _ in range(abs(delta.x)):
+                step = delta.x // abs(delta.x)
+                player.pos.x += step
+                if self.is_box_in_obstacle(player.get_collision_box()):
+                    player.pos.x -= step
+                    break
 
             # try moving on the y axis
-            player.pos.y += delta.y
-            if self.is_box_in_obstacle(player.get_collision_box()):
-                player.pos.y -= delta.y
+            for _ in range(abs(delta.y)):
+                step = delta.y // abs(delta.y)
+                player.pos.y += step
+                if self.is_box_in_obstacle(player.get_collision_box()):
+                    player.pos.y -= step
+                    break
+
 
             
         # prepare information about new bullets
