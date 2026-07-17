@@ -15,6 +15,10 @@ async def websocket_endpoint(websocket: WebSocket, user: SessionPayload = Depend
         return
 
     room: Room = connectionManager.getOrCreateRoom(roomId)
+    if room.isRunning:
+        await websocket.close(code=1000)
+        return
+
     room.connect(websocket, user)
 
     await websocket.accept()
