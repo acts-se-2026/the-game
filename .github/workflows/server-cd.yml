@@ -23,7 +23,10 @@ jobs:
         run: docker build src/backend --tag backend
 
       - name: Build frontend image
-        run: docker build src/frontend --tag frontend
+        run: |
+          sed -i 's/localhost:8000/89.169.113.154/g' src/frontend/.env.frontend
+          docker build src/frontend --tag frontend
+        
 
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
