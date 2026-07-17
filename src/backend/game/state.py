@@ -114,16 +114,80 @@ class GameInfo:
 # - add players 
 # - do anything you want
 class State:
-    # adds preset obstacles and players
+    # Creates a State that's ready to run a real game
     def init_populated(player_uuids: list[str]):
-        obstacles = [
-            Box(Vec2(250, 0), Vec2(100, 200)),
-            Box(Vec2(250, 400), Vec2(100, 200)),
-        ]
-
-        s = State(obstacles)
+        s = State(State.obstacle_generator())
         s.add_players_at_random_positions(player_uuids)
         return s
+
+    # Generates obstacles in a box grid
+    def obstacle_generator():
+
+        #--CREATES A MAP WITH RANDOM OBSTACLE POSITIONS--#    
+        #   
+        obstacles = [] # list of Box class
+        obstacles_grid_pos = set() #position of each obsticle in grid: (0, 0) is top left (9, 9) would be bottom right
+
+        for i in range(25):
+            x = random.randint(0, 9)
+            y = random.randint(0, 9)
+
+            while (x, y) in obstacles_grid_pos:
+                x = random.randint(0, 9)
+                y = random.randint(0, 9)
+            
+            obstacles_grid_pos.add((x, y))
+            obstacles.append(Box(Vec2(x*60, y*60), Vec2(60, 60)))
+
+        #--CHECKS IF AN AREA IS BLOCKED BY OBSTACLES--#
+        if State.check_map_validity(obstacles_grid_pos) == False:
+            return State.obstacle_generator()
+        
+        return obstacles
+
+
+    
+    def check_map_validity(obstacles_grid_pos):
+        #This checks whether any areas are seperated by obstacles using flood fill
+        visited = set()
+        queue = []
+
+        found = False
+        for y in range(10):
+            for x in range(10):
+                if (x, y) not in obstacles_grid_pos:
+                    start = (x, y)
+                    found=True
+                    break
+            if found:
+                break
+
+        
+        visited.add(start)
+        queue.append(start)
+
+        while queue:
+            x, y = queue.pop(0)
+
+            neighbours = [
+                (x+1, y), #right
+                (x-1, y), #left
+                (x, y+1), #down
+                (x, y-1) #up
+            ]
+
+            for nx, ny in neighbours:
+                #is inside map
+                if 0 <= nx <= 9 and 0 <= ny <= 9:
+
+                    if (nx , ny) not in obstacles_grid_pos and (nx , ny) not in visited:
+                        visited.add((nx, ny))
+                        queue.append((nx, ny))
+
+        #All open grids have been filled
+        if len(visited) == 100 - len(obstacles_grid_pos):
+            return True
+        return False
 
 
     def __init__(self, obstacles=[]):
@@ -253,6 +317,3 @@ class State:
     def end_game(self):
         pass
         
-        
-        
-
