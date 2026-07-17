@@ -113,29 +113,29 @@ def test_collision_with_walls():
     level_size = state.get_level_info().level_size
 
     # left wall
-    player.pos = Vec2(PLAYER_SIZE.x / 2, 50)
+    player.pos = Vec2(PLAYER_SIZE.x // 2, 50)
     player.movement_dir = Vec2(-1, 0)
     state.step_frame()
 
-    assert player.pos == Vec2(PLAYER_SIZE.x / 2, 50)
+    assert player.pos == Vec2(PLAYER_SIZE.x // 2, 50)
 
     # right wall
-    player.pos = Vec2(level_size.x - PLAYER_SIZE.x / 2, 50)
+    player.pos = Vec2(level_size.x - PLAYER_SIZE.x // 2, 50)
     player.movement_dir = Vec2(1, 0)
     state.step_frame()
 
-    assert player.pos == Vec2(level_size.x - PLAYER_SIZE.x / 2, 50)
+    assert player.pos == Vec2(level_size.x - PLAYER_SIZE.x // 2, 50)
 
     # top wall
-    player.pos = Vec2(50, PLAYER_SIZE.y / 2)
+    player.pos = Vec2(50, PLAYER_SIZE.y // 2)
     player.movement_dir = Vec2(0, -1)
     state.step_frame()
 
-    assert player.pos == Vec2(50, PLAYER_SIZE.y / 2)
+    assert player.pos == Vec2(50, PLAYER_SIZE.y // 2)
 
     # bottom wall
-    player.pos = Vec2(50, level_size.y - PLAYER_SIZE.y / 2)
+    player.pos = Vec2(50, level_size.y - PLAYER_SIZE.y // 2)
     player.movement_dir = Vec2(0, 1)
     state.step_frame()
 
-    assert player.pos == Vec2(50, level_size.y - PLAYER_SIZE.y / 2)
+    assert player.pos == Vec2(50, level_size.y - PLAYER_SIZE.y // 2)

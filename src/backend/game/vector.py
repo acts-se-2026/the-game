@@ -28,6 +28,9 @@ class Vec2:
     def __truediv__(self, divisor):
         return self * (1 / divisor)
 
+    def __floordiv__(self, divisor):
+        return Vec2(self.x // divisor, self.y // divisor)
+
     def sqr_length(self):
         return self.x ** 2 + self.y ** 2
 
@@ -42,6 +45,12 @@ class Vec2:
         if length == 0:
             return Vec2.ZERO
         return self / self.length()
+
+    def rounded(self):
+        return Vec2(round(self.x), round(self.y))
+
+    def is_int(self):
+        return type(self.x) is int and type(self.y) is int
 
     def to_dict(self):
         return {
