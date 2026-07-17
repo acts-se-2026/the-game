@@ -77,28 +77,23 @@ class Bullet:
 
     def to_dict(self):
         return {
-            "id": self.id,
             "x": self.pos.x,
             "y": self.pos.y,
-            "dx": self.movement_dir.x,
-            "dy": self.movement_dir.y,
-            "owner": self.owner_uuid,
+            "heading": math.atan2(self.movement_dir.y, self.movement_dir.x),
         }
 
 
 
 class StateDiff:
-    def __init__(self, players: list[Player], removed_bullet_ids: list[int], new_bullets_appended: list[Bullet], explosion_positions: list[Vec2]):
-        self.removed_bullet_ids = removed_bullet_ids # list of int
-        self.new_bullets_appended = new_bullets_appended # list of Bullet
+    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[Vec2]):
+        self.allBullets = allBullets # list of Bullet
         self.players = players # list of Player
         self.explosion_positions = explosion_positions # list of Vec2
 
     def to_dict(self):
         return {
             "players": [player.to_dict() for player in self.players],
-            "removed_bullet_ids": list(self.removed_bullet_ids),
-            "new_bullets": [bullet.to_dict() for bullet in self.new_bullets_appended],
+            "bullets": [bullet.to_dict() for bullet in self.allBullets],
             "explosion_positions": [pos.to_dict() for pos in self.explosion_positions],
         }
 
@@ -237,6 +232,7 @@ class State:
 
     # Called from outside
     def try_shoot_player_bullet(self, player_uuid: str):
+        print(f"Player {player_uuid} is trying to shoot a bullet at frame {self.current_frame}")
         for player in self.players:
             if player.uuid == player_uuid and self.current_frame - player.last_shot_time > SHOOTING_DELAY:
                 self.bullets.append(Bullet(player.pos, player.get_shooting_dir(), player.uuid))
@@ -311,8 +307,7 @@ class State:
 
         return StateDiff(
             players=self.players,
-            removed_bullet_ids=list(removed_bullet_ids),
-            new_bullets_appended=new_bullets,
+            allBullets=self.bullets,
             explosion_positions=explosion_positions
         )
 

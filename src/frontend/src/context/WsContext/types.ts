@@ -32,5 +32,10 @@ export interface GameStartPacket {
             y: number;
             heading: number;
         }[];
+        bullets: {
+            x: number;
+            y: number;
+            heading: number;
+        }[];
     }
 }

@@ -30,6 +30,11 @@ function buildArenaState(data: GameStartPacket["data"] | undefined, localId: str
                 color: isLocal ? "#60a5fa" : ENEMY_COLORS[enemyIndex++ % ENEMY_COLORS.length],
             };
         }),
+        bullets: (data.bullets ?? []).map((bullet) => ({
+            x: bullet.x,
+            y: bullet.y,
+            heading: bullet.heading,
+        })),
     };
 }
 
@@ -38,14 +43,12 @@ export function useGameState() {
     const { socket, sendMessage } = useWsConnection();
     const { user } = useUser();
     const [arena, setArena] = useState<ArenaState>(
-        () => buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [] }
+        () => buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [] }
     );
     const [shotsFired, setShotsFired] = useState(0);
     const movement = useKeyboardMovement();
 
     const lastAimSentAt = useRef(0);
-
-    const tmpSendMessage = useCallback((msg: any) => console.log("Sending:", msg), []);
 
     useEffect(() => {
         const currentSocket = socket.current;
@@ -98,8 +101,8 @@ export function useGameState() {
 
     const handleShoot = useCallback(() => {
         setShotsFired((s) => s + 1);
-        tmpSendMessage({ type: "PLAYER_SHOOT", payload: {} });
-    }, [tmpSendMessage]);
+        sendMessage("player_shoot");
+    }, [sendMessage]);
 
     return { arena, shotsFired, handleAim, handleShoot };
 }

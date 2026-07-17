@@ -1,5 +1,5 @@
 import { Application, Container, Graphics } from "pixi.js";
-import { ARENA_SIZE, type ArenaState, type Obstacle, type Player } from "../../../../../game/types";
+import { ARENA_SIZE, type ArenaState, type Bullet, type Obstacle, type Player } from "../../../../../game/types";
 
 const PLAYER_RADIUS = 18;
 const GRID_SIZE = 30;
@@ -9,6 +9,7 @@ export class ArenaRenderer {
     private world: Container;
     private players: Map<string, Container> = new Map();
     private obstacles: Map<string, Graphics> = new Map();
+    private bullets: Map<string, Graphics> = new Map();
 
     constructor(app: Application) {
         this.app = app;
@@ -31,6 +32,24 @@ export class ArenaRenderer {
     public syncState(state: ArenaState) {
         this.syncObstacles(state.obstacles);
         this.syncPlayers(state.players);
+        this.syncBullets(state.bullets);
+    }
+
+    private syncBullets(data: Bullet[]) {
+        for (const graphics of this.bullets.values()) {
+            graphics.destroy(true);
+        }
+        this.bullets.clear();
+
+        data.forEach((bullet, idx) => {
+            const key = String(idx);
+            const graphics = new Graphics();
+            this.world.addChild(graphics);
+            this.bullets.set(key, graphics);
+
+            graphics.clear()
+                .circle(bullet.x, bullet.y, 5).fill({ color: 0xff0000 });
+        });
     }
 
     private syncObstacles(data: Obstacle[]) {

@@ -1,6 +1,7 @@
 import type { GameStartPacket } from "../context/WsContext/types";
 import type { ArenaState } from "./types";
 
+const ENEMY_COLORS = ["#fb7185", "#fbbf24", "#34d399", "#a78bfa", "#f472b6"];
 
 export const processNewState = (newState: GameStartPacket["data"], currentState: ArenaState): ArenaState => {
     const updatedPlayers = newState.players.map((newPlayer) => {
@@ -16,9 +17,11 @@ export const processNewState = (newState: GameStartPacket["data"], currentState:
     });
 
     const updatedObstacles = currentState.obstacles;
+    const updatedBullets = newState.bullets;
 
     return {
         players: updatedPlayers,
         obstacles: updatedObstacles,
+        bullets: updatedBullets,
     };
 }

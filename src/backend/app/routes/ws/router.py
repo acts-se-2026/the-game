@@ -52,6 +52,14 @@ async def websocket_endpoint(websocket: WebSocket, user: SessionPayload = Depend
                     if gameState is None:
                         continue
                     gameState.set_player_rotation(playerId, heading)
+                case "player_shoot":
+                    if not room.isRunning:
+                        continue
+                    playerId = user.session_id
+                    gameState = room.gameState
+                    if gameState is None:
+                        continue
+                    gameState.try_shoot_player_bullet(playerId)
 
             
     except WebSocketDisconnect:
