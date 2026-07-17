@@ -20,6 +20,7 @@ BULLET_SIZE = Vec2(5, 5)
 
 ENABLE_CHESTS = False
 HEALTH_CHEST_SIZE = Vec2(10, 10)
+CHEST_SPAWN_DELAY = 200
 
 
 class HealthChest:
@@ -135,11 +136,22 @@ class GameInfo:
 # - add players 
 # - do anything you want
 class State:
+    def __init__(self, obstacles=[]):
+        self.current_frame = 0
+        self.bullets = []
+        
+        self.unsent_bullet_ids = []
+        
+        self.obstacles = obstacles
+        self.chests = [] #List of HealthChest Class
+        self.players = []
+
+        self.next_chest_spawn = CHEST_SPAWN_DELAY #frame number
+
     # Creates a State that's ready to run a real game
     def init_populated(player_uuids: list[str]):
         s = State(State.obstacle_generator())
         s.add_players_at_random_positions(player_uuids)
-        s.add_health_chests_at_random_position(3)
         return s
 
     # Generates obstacles in a box grid
@@ -226,18 +238,6 @@ class State:
         if len(visited) == GRID_SIZE.x*GRID_SIZE.y - len(obstacles_grid_pos):
             return True
         return False
-
-
-    def __init__(self, obstacles=[]):
-        self.current_frame = 0
-        self.bullets = []
-        
-        self.unsent_bullet_ids = []
-        
-        self.obstacles = obstacles
-        self.chests = [] #List of HealthChest Class
-        self.players = []
-
         
     def add_players_at_random_positions(self, player_uuids: list[str]):
         for uuid in player_uuids:
@@ -255,22 +255,25 @@ class State:
         self.players.append(player)
         return player
 
-    def add_health_chests_at_random_position(self, cnt):
-        for _ in range(cnt):
+    def add_health_chest_at_random_position(self):
+        x = random.randint(0, LEVEL_SIZE.x)
+        y = random.randint(0, LEVEL_SIZE.y)
+
+        chest = HealthChest(Vec2(x, y))
+
+        while self.is_box_in_obstacle(chest.box) or self.is_box_on_player(chest.box):
             x = random.randint(0, LEVEL_SIZE.x)
             y = random.randint(0, LEVEL_SIZE.y)
 
             chest = HealthChest(Vec2(x, y))
-
-            while self.is_box_in_obstacle(chest.box):
-                x = random.randint(0, LEVEL_SIZE.x)
-                y = random.randint(0, LEVEL_SIZE.y)
-
-                chest = HealthChest(Vec2(x, y))
-            
-            self.chests.append(chest)
         
+        self.chests.append(chest)
 
+    def is_box_on_player(self, box):
+        for player in self.players:
+            if Box.area_colliding(player.get_collision_box(), box):
+                return True
+        return False
 
     # Called from outside
     def get_level_info(self):
@@ -377,6 +380,10 @@ class State:
                 alive_players.append(player)
 
         self.players = alive_players
+
+        if self.current_frame == self.next_chest_spawn:
+            self.add_health_chest_at_random_position()
+            self.next_chest_spawn += CHEST_SPAWN_DELAY
 
         # remove dead bullets
         self.bullets = [bullet for bullet in self.bullets if bullet.id not in removed_bullet_ids]
