@@ -24,7 +24,7 @@ jobs:
 
       - name: Build frontend image
         run: |
-          sed -i 's/localhost:8000/89.169.113.154/g' src/frontend/.env.frontend
+          sed -i 's/localhost:8000/89.169.113.154/g' src/frontend/.env.example
           docker build src/frontend --tag frontend
         
 
