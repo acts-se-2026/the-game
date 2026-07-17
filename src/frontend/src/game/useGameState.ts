@@ -42,8 +42,8 @@ export function useGameState() {
     const location = useLocation();
     const { socket, sendMessage } = useWsConnection();
     const { user } = useUser();
-    const [arena, setArena] = useState<ArenaState>(
-        () => buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [] }
+    const arena = useRef<ArenaState>(
+        buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [] }
     );
     const [shotsFired, setShotsFired] = useState(0);
     const movement = useKeyboardMovement();
@@ -62,8 +62,7 @@ export function useGameState() {
             switch (packet.type) {
                 case "state_diff":
                     const arenaState = packet.data as GameStartPacket["data"];
-                    const newArenaState = processNewState(arenaState, arena);
-                    setArena(newArenaState);
+                    arena.current = processNewState(arenaState, arena.current);
                     break;
                 default:
                     console.warn("Unknown packet type:", packet.type);
@@ -89,13 +88,10 @@ export function useGameState() {
         sendMessage("player_move", { x: movement.x, y: movement.y });
     }, [movement, sendMessage]);
 
-    const localPlayerPos = useRef<{ x: number; y: number } | null>(null);
-    const localPlayer = arena.players.find(p => p.isLocal);
-    localPlayerPos.current = localPlayer ? { x: localPlayer.x, y: localPlayer.y } : null;
-
     const sendAim = useCallback(() => {
         const pos = lastAimPos.current;
-        const playerPos = localPlayerPos.current;
+        const localPlayer = arena.current.players.find(p => p.isLocal);
+        const playerPos = localPlayer ? { x: localPlayer.x, y: localPlayer.y } : null;
         if (!pos || !playerPos) return;
 
         // Always aim towards the mouse cursor

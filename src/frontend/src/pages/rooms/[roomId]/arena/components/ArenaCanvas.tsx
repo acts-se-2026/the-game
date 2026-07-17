@@ -1,15 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { Application } from "pixi.js";
 import { ARENA_SIZE, type ArenaState } from "../../../../../game/types";
 import { ArenaRenderer } from "../lib/ArenaRenderer";
 
 type ArenaCanvasProps = {
-    state: ArenaState;
+    stateRef: RefObject<ArenaState>;
     onAim?: (position: { x: number; y: number }) => void;
     onShoot?: () => void;
 };
 
-export default function ArenaCanvas({ state, onAim, onShoot }: ArenaCanvasProps) {
+export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasProps) {
     const hostRef = useRef<HTMLDivElement>(null);
     const [pixi, setPixi] = useState<{
         app: Application;
@@ -25,11 +25,17 @@ export default function ArenaCanvas({ state, onAim, onShoot }: ArenaCanvasProps)
         onShootRef.current = onShoot;
     }, [onAim, onShoot]);
 
-    // This effect runs every time the 'state' changes OR when Pixi is finally ready
     useEffect(() => {
         if (!pixi) return;
-        pixi.renderer.syncState(state);
-    }, [state, pixi]);
+
+        let frame: number;
+        const tick = () => {
+            pixi.renderer.syncState(stateRef.current);
+            frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(frame);
+    }, [stateRef, pixi]);
 
     // This effect runs once when the component is first loaded
     useEffect(() => {
