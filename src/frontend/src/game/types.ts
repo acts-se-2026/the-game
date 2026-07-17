@@ -19,7 +19,14 @@ export type Player = {
   isLocal?: boolean
 }
 
+export type Bullet = {
+  x: number
+  y: number
+  heading: number
+}
+
 export type ArenaState = {
   obstacles: Obstacle[]
   players: Player[]
+  bullets: Bullet[]
 }

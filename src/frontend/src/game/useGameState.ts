@@ -30,6 +30,11 @@ function buildArenaState(data: GameStartPacket["data"] | undefined, localId: str
                 color: isLocal ? "#60a5fa" : ENEMY_COLORS[enemyIndex++ % ENEMY_COLORS.length],
             };
         }),
+        bullets: (data.bullets ?? []).map((bullet) => ({
+            x: bullet.x,
+            y: bullet.y,
+            heading: bullet.heading,
+        })),
     };
 }
 
@@ -37,15 +42,15 @@ export function useGameState() {
     const location = useLocation();
     const { socket, sendMessage } = useWsConnection();
     const { user } = useUser();
-    const [arena, setArena] = useState<ArenaState>(
-        () => buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [] }
+    const arena = useRef<ArenaState>(
+        buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [] }
     );
     const [shotsFired, setShotsFired] = useState(0);
     const movement = useKeyboardMovement();
 
     const lastAimSentAt = useRef(0);
-
-    const tmpSendMessage = useCallback((msg: any) => console.log("Sending:", msg), []);
+    const lastAimPos = useRef<{ x: number; y: number } | null>(null);
+    const lastSentHeading = useRef<number | null>(null);
 
     useEffect(() => {
         const currentSocket = socket.current;
@@ -57,8 +62,7 @@ export function useGameState() {
             switch (packet.type) {
                 case "state_diff":
                     const arenaState = packet.data as GameStartPacket["data"];
-                    const newArenaState = processNewState(arenaState, arena);
-                    setArena(newArenaState);
+                    arena.current = processNewState(arenaState, arena.current);
                     break;
                 default:
                     console.warn("Unknown packet type:", packet.type);
@@ -84,22 +88,46 @@ export function useGameState() {
         sendMessage("player_move", { x: movement.x, y: movement.y });
     }, [movement, sendMessage]);
 
-    const handleAim = useCallback((pos: { x: number; y: number }) => {
+    const sendAim = useCallback(() => {
+        const pos = lastAimPos.current;
+        const localPlayer = arena.current.players.find(p => p.isLocal);
+        const playerPos = localPlayer ? { x: localPlayer.x, y: localPlayer.y } : null;
+        if (!pos || !playerPos) return;
+
+        // Always aim towards the mouse cursor
+        const heading = Math.atan2(pos.y - playerPos.y, pos.x - playerPos.x);
+
+        // Don't send if the aim direction did not change
+        if (lastSentHeading.current === heading) return;
+
         const now = Date.now();
         if (now - lastAimSentAt.current < 50) return;
 
-        const localPlayer = arena.players.find(p => p.isLocal);
-        if (localPlayer) {
-            const heading = Math.atan2(pos.y - localPlayer.y, pos.x - localPlayer.x);
-            sendMessage("player_aim", { heading });
-            lastAimSentAt.current = now;
-        }
-    }, [sendMessage, arena.players]);
+        sendMessage("player_aim", { heading });
+        lastSentHeading.current = heading;
+        lastAimSentAt.current = now;
+    }, [sendMessage]);
+
+    const handleAim = useCallback((pos: { x: number; y: number }) => {
+        lastAimPos.current = { x: pos.x, y: pos.y };
+        sendAim();
+    }, [sendAim]);
+
+    // Continuously re-evaluate the aim so the player always faces the mouse
+    useEffect(() => {
+        let frame: number;
+        const tick = () => {
+            sendAim();
+            frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(frame);
+    }, [sendAim]);
 
     const handleShoot = useCallback(() => {
         setShotsFired((s) => s + 1);
-        tmpSendMessage({ type: "PLAYER_SHOOT", payload: {} });
-    }, [tmpSendMessage]);
+        sendMessage("player_shoot");
+    }, [sendMessage]);
 
     return { arena, shotsFired, handleAim, handleShoot };
 }

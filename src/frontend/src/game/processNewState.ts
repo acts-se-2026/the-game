@@ -1,7 +1,6 @@
 import type { GameStartPacket } from "../context/WsContext/types";
 import type { ArenaState } from "./types";
 
-
 export const processNewState = (newState: GameStartPacket["data"], currentState: ArenaState): ArenaState => {
     const updatedPlayers = newState.players.map((newPlayer) => {
         const existingPlayer = currentState.players.find((p) => p.id === newPlayer.id);
@@ -16,9 +15,11 @@ export const processNewState = (newState: GameStartPacket["data"], currentState:
     });
 
     const updatedObstacles = currentState.obstacles;
+    const updatedBullets = newState.bullets;
 
     return {
         players: updatedPlayers,
         obstacles: updatedObstacles,
+        bullets: updatedBullets,
     };
 }

@@ -48,7 +48,7 @@ export default function ArenaPage() {
                 </header>
 
                 <div className="flex flex-col items-start gap-6 lg:flex-row">
-                    <ArenaCanvas state={arena} onAim={handleAim} onShoot={handleShoot} />
+                    <ArenaCanvas stateRef={arena} onAim={handleAim} onShoot={handleShoot} />
                     <aside className="w-full rounded-2xl border border-slate-800 bg-slate-900/85 p-5 lg:w-64">
                         <div className="mb-5 flex items-center gap-2 font-bold text-emerald-300">
                             <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_0.6rem_#4ade80]" />
