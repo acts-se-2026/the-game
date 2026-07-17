@@ -9,7 +9,7 @@ import { processNewState } from "./processNewState";
 
 const ENEMY_COLORS = ["#fb7185", "#fbbf24", "#34d399", "#a78bfa", "#f472b6"];
 
-export function buildArenaState(data: GameStartPacket["data"] | undefined, localId: string | undefined): ArenaState | null {
+function buildArenaState(data: GameStartPacket["data"] | undefined, localId: string | undefined): ArenaState | null {
     if (!data || !Array.isArray(data.players)) return null;
 
     let enemyIndex = 0;

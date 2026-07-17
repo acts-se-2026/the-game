@@ -123,9 +123,7 @@ export class ArenaRenderer {
                     alpha: player.isLocal ? 0.22 : 0.1,
                 })
                 .circle(0, 0, PLAYER_RADIUS).fill({ color: player.color }).stroke({ color: 0xf8fafc, width: 2 });
-
-            const arrow = container.getChildByName("arrow") as Graphics;
-            arrow.rotation = player.heading;
+                    
 
             const username = container.getChildByName("username") as Text;
             username.text = player.username;
