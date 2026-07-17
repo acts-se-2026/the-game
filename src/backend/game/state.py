@@ -18,6 +18,18 @@ SHOOTING_DELAY = 5
 BULLET_SPEED = 10
 BULLET_SIZE = Vec2(5, 5)
 
+ENABLE_CHESTS = False
+HEALTH_CHEST_SIZE = Vec2(10, 10)
+
+
+class HealthChest:
+    def __init__(self, pos):
+        self.pos = pos
+        self.health = 50
+
+        self.box = Box(self.pos - HEALTH_CHEST_SIZE / 2, HEALTH_CHEST_SIZE)
+
+        self.used = False
 
 class Box:
     def __init__(self, pos: Vec2, size: Vec2):
@@ -119,6 +131,7 @@ class State:
     def init_populated(player_uuids: list[str]):
         s = State(State.obstacle_generator())
         s.add_players_at_random_positions(player_uuids)
+        s.add_health_chests_at_random_position(3)
         return s
 
     # Generates obstacles in a box grid
@@ -215,6 +228,7 @@ class State:
         self.unsent_bullet_ids = []
         
         self.obstacles = obstacles
+        self.chests = [] #List of HealthChest Class
         self.players = []
 
         
@@ -233,6 +247,22 @@ class State:
     def add_player(self, player: Player):
         self.players.append(player)
         return player
+
+    def add_health_chests_at_random_position(self, cnt):
+        for _ in range(cnt):
+            x = random.randint(0, LEVEL_SIZE.x)
+            y = random.randint(0, LEVEL_SIZE.y)
+
+            chest = HealthChest(Vec2(x, y))
+
+            while self.is_box_in_obstacle(chest.box):
+                x = random.randint(0, LEVEL_SIZE.x)
+                y = random.randint(0, LEVEL_SIZE.y)
+
+                chest = HealthChest(Vec2(x, y))
+            
+            self.chests.append(chest)
+        
 
 
     # Called from outside
@@ -294,6 +324,13 @@ class State:
                     break
 
 
+            #CHECKS COLLISION WITH HEALTH CHEST
+            for chest in self.chests:
+                if Box.area_colliding(player.get_collision_box(), chest.box):
+                    player.hp += chest.health
+                    chest.used = True
+                    
+
             
         # prepare information about new bullets
         new_bullets = []
@@ -338,6 +375,7 @@ class State:
 
         # remove dead bullets
         self.bullets = [bullet for bullet in self.bullets if bullet.id not in removed_bullet_ids]
+        self.chests = [chest for chest in self.chests if chest.used == False]
 
         if len(self.players) <= 1:
             self.end_game()
