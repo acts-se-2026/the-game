@@ -1,9 +1,9 @@
-import bullethitSrc from "../../../../sfx/bullethit.mp3";
-import deathSrc from "../../../../sfx/death.mp3";
-import gunshotSrc from "../../../../sfx/gunshot.mp3";
-import newRoundSrc from "../../../../sfx/new_round.mp3";
-import startGameSrc from "../../../../sfx/start_game.mp3";
-import winSrc from "../../../../sfx/win.mp3";
+import bullethitSrc from "../../sfx/bullethit.mp3";
+import deathSrc from "../../sfx/death.mp3";
+import gunshotSrc from "../../sfx/gunshot.mp3";
+import newRoundSrc from "../../sfx/new_round.mp3";
+import startGameSrc from "../../sfx/start_game.mp3";
+import winSrc from "../../sfx/win.mp3";
 
 export type SfxName =
     | "bullethit"
