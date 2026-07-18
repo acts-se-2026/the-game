@@ -17,7 +17,8 @@ def getAllRooms():
         returnRooms.append({
             "room_id": room.room_id,
             "player_count": len(room.activeConnections),
-            "max_players": room.maxPlayers
+            "max_players": room.maxPlayers,
+            "players": [user.username for user in room.activeConnections.values()],
         })
     
     return {"rooms": returnRooms}

@@ -31,5 +31,9 @@ def test_created_room_appears_in_list(client):
 
     created_id = client.post("/api/rooms/create").json()["room_id"]
 
-    listed_ids = [room["room_id"] for room in client.get("/api/rooms").json()["rooms"]]
+    rooms = client.get("/api/rooms").json()["rooms"]
+    listed_ids = [room["room_id"] for room in rooms]
     assert created_id in listed_ids
+
+    created_room = next(room for room in rooms if room["room_id"] == created_id)
+    assert created_room["players"] == []
