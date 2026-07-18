@@ -405,7 +405,7 @@ class State:
 
         # remove dead bullets
         self.bullets = [bullet for bullet in self.bullets if bullet.id not in removed_bullet_ids]
-        self.chests = [chest for chest in self.chests if chest.used == False]
+        self.chests = [chest for chest in self.chests if not chest.used]
 
         if len(self.players) <= 1:
             self.end_game()

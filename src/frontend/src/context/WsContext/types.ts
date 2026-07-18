@@ -39,7 +39,7 @@ export interface GameStartPacket {
             heading: number;
             ownerId : string;
         }[];
-        chests: {
+        chests?: {
             x: number;
             y: number;
             size: {
