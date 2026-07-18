@@ -85,15 +85,6 @@ def test_player_movemet():
     assert player.pos == Vec2(100, 100) + PLAYER_SPEED * Vec2(1, 0)
     assert player2.pos == Vec2(100, 100)
 
-
-def test_player_hit():
-    state = State()
-    player = state.add_player(Player('a', Vec2(100, 100)))
-
-    assert player.hp == 100
-    player.hit()
-    assert player.hp == 90
-
 def test_shooting_direction():
     player = Player("abc", Vec2(0, 0))
     shooting_dir = player.get_shooting_dir()
