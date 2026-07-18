@@ -14,12 +14,14 @@ export class ArenaRenderer {
     constructor(app: Application) {
         this.app = app;
         this.world = new Container();
+        this.world.sortableChildren = true;
         this.app.stage.addChild(this.world);
         this.initBackground();
     }
 
     private initBackground() {
         const grid = new Graphics();
+        grid.zIndex = 0;
         grid.rect(0, 0, ARENA_WIDTH, ARENA_HEIGHT).fill({ color: 0x122032 });
         for (let x = 0; x <= ARENA_WIDTH; x += GRID_SIZE) {
             grid.moveTo(x, 0).lineTo(x, ARENA_HEIGHT);
@@ -47,6 +49,7 @@ export class ArenaRenderer {
         bullets.forEach((bullet, idx) => {
             const key = String(idx);
             const graphics = new Graphics();
+            graphics.zIndex = 30;
             this.world.addChild(graphics);
             this.bullets.set(key, graphics);
 
@@ -71,6 +74,7 @@ export class ArenaRenderer {
         data.forEach((obstacle, idx) => {
             const key = String(idx);
             const graphics = new Graphics();
+            graphics.zIndex = 10;
             this.world.addChild(graphics);
             this.obstacles.set(key, graphics);
 
@@ -95,6 +99,7 @@ export class ArenaRenderer {
             let container = this.players.get(player.id);
             if (!container) {
                 container = new Container();
+                container.zIndex = 20;
                 const body = new Graphics();
                 body.name = "body";
                 
