@@ -46,7 +46,8 @@ function buildArenaState(data: GameStartPacket["data"] | undefined, localId: str
             size : {
                 x: chest.size.x,
                 y: chest.size.y
-            }
+            },
+            effect: chest.effect,
         })),
 
     };
