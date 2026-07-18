@@ -45,7 +45,7 @@ export function useGameState() {
     const arena = useRef<ArenaState>(
         buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [] }
     );
-    const [shotsFired, setShotsFired] = useState(0);
+    const [health, setHealth] = useState(100);
     const movement = useKeyboardMovement();
 
     const lastAimSentAt = useRef(0);
@@ -125,9 +125,8 @@ export function useGameState() {
     }, [sendAim]);
 
     const handleShoot = useCallback(() => {
-        setShotsFired((s) => s + 1);
         sendMessage("player_shoot");
     }, [sendMessage]);
 
-    return { arena, shotsFired, handleAim, handleShoot };
+    return { arena, health, handleAim, handleShoot };
 }
