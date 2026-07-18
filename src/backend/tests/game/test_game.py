@@ -126,6 +126,38 @@ def test_bullet_hits_player():
     assert target.hp == 90
     assert len(state.bullets) == 0
 
+
+def test_lethal_bullet_reports_killer():
+    state = State()
+
+    shooter = state.add_player(Player('shooter', Vec2(100, 100)))
+    target = state.add_player(Player('target', Vec2(100 + BULLET_SPEED, 100)))
+    target.hp = 10
+    shooter.rotation = 0
+
+    state.current_frame = SHOOTING_DELAY + 1
+    state.try_shoot_player_bullet(shooter.uuid)
+
+    changes = state.step_frame().to_dict()
+
+    assert changes['deaths'] == [{
+        'player_id': target.uuid,
+        'killer_id': shooter.uuid,
+    }]
+
+
+def test_removed_player_without_attacker_reports_unknown_killer():
+    state = State()
+    player = state.add_player(Player('disconnected-player', Vec2(100, 100)))
+
+    state.kill_player(player.uuid)
+    changes = state.step_frame().to_dict()
+
+    assert changes['deaths'] == [{
+        'player_id': player.uuid,
+        'killer_id': None,
+    }]
+
 def test_bullet_delay():
     state = State()
     player = state.add_player(Player('a', Vec2(100, 100)))

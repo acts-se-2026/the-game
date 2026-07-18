@@ -6,6 +6,7 @@ import { useUser } from "../context/UserContext";
 import type { GameStartPacket, WsUnknownPacket } from "../context/WsContext/types";
 import { useLocation } from "react-router";
 import { processNewState } from "./processNewState";
+import { determineMatchResult, findKillerName, type MatchResult } from "./matchResult";
 
 const ENEMY_COLORS = ["#fb7185", "#fbbf24", "#34d399", "#a78bfa", "#f472b6"];
 
@@ -47,6 +48,8 @@ export function useGameState() {
         buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [] }
     );
     const [shotsFired, setShotsFired] = useState(0);
+    const [matchResult, setMatchResult] = useState<MatchResult>(null);
+    const [killedBy, setKilledBy] = useState<string | null>(null);
     const movement = useKeyboardMovement();
 
     const lastAimSentAt = useRef(0);
@@ -61,10 +64,18 @@ export function useGameState() {
             const packet = JSON.parse(event.data) as WsUnknownPacket;
 
             switch (packet.type) {
-                case "state_diff":
+                case "state_diff": {
                     const arenaState = packet.data as GameStartPacket["data"];
+                    const previousPlayers = arena.current.players;
                     arena.current = processNewState(arenaState, arena.current);
+                    setKilledBy((currentKiller) =>
+                        currentKiller ?? findKillerName(arenaState.deaths ?? [], previousPlayers, user?.session_id)
+                    );
+                    setMatchResult((currentResult) =>
+                        currentResult ?? determineMatchResult(arena.current.players, user?.session_id)
+                    );
                     break;
+                }
                 default:
                     console.warn("Unknown packet type:", packet.type);
             }
@@ -83,7 +94,7 @@ export function useGameState() {
             currentSocket.removeEventListener("message", handleIncomingPacket);
             currentSocket.removeEventListener("close", handleSocketClose);
         };
-    }, [socket]);
+    }, [socket, user?.session_id]);
 
     useEffect(() => {
         sendMessage("player_move", { x: movement.x, y: movement.y });
@@ -130,5 +141,5 @@ export function useGameState() {
         sendMessage("player_shoot");
     }, [sendMessage]);
 
-    return { arena, shotsFired, handleAim, handleShoot };
+    return { arena, shotsFired, matchResult, killedBy, handleAim, handleShoot };
 }

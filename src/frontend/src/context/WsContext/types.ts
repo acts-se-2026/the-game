@@ -38,5 +38,11 @@ export interface GameStartPacket {
             y: number;
             heading: number;
         }[];
+        deaths?: DeathRecord[];
     }
+}
+
+export interface DeathRecord {
+    player_id: string;
+    killer_id: string | null;
 }

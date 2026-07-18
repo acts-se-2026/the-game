@@ -2,15 +2,17 @@ import { useLocation, useNavigate, useParams } from "react-router";
 import { useGameState } from "../../../../game/useGameState";
 import ArenaCanvas from "./components/ArenaCanvas";
 import { useWsConnection } from "../../../../context/WsContext";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import MatchResultOverlay from "./components/MatchResultOverlay";
 
 export default function ArenaPage() {
     const location = useLocation();
     const navigate = useNavigate();
     const { roomId = "PREVIEW" } = useParams();
-    const { arena, shotsFired, handleAim, handleShoot } = useGameState();
+    const { arena, shotsFired, matchResult, killedBy, handleAim, handleShoot } = useGameState();
     const { isConnected, disconnectWs } = useWsConnection();
     const hasRedirectedRef = useRef(false);
+    const [isLossOverlayDismissed, setIsLossOverlayDismissed] = useState(false);
 
     const hasArenaState = Boolean(location.state?.arenaState);
 
@@ -48,7 +50,14 @@ export default function ArenaPage() {
                 </header>
 
                 <div className="flex flex-col items-start gap-6 lg:flex-row">
-                    <ArenaCanvas stateRef={arena} onAim={handleAim} onShoot={handleShoot} />
+                    <div className="relative aspect-square w-full max-w-[600px]">
+                        <ArenaCanvas stateRef={arena} onAim={handleAim} onShoot={handleShoot} />
+                        <MatchResultOverlay
+                            result={matchResult === "lose" && isLossOverlayDismissed ? null : matchResult}
+                            killedBy={killedBy}
+                            onSpectate={() => setIsLossOverlayDismissed(true)}
+                        />
+                    </div>
                     <aside className="w-full rounded-2xl border border-slate-800 bg-slate-900/85 p-5 lg:w-64">
                         <div className="mb-5 flex items-center gap-2 font-bold text-emerald-300">
                             <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_0.6rem_#4ade80]" />
