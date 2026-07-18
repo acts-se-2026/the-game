@@ -45,7 +45,7 @@ export function useGameState() {
     const arena = useRef<ArenaState>(
         buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [] }
     );
-    const [health, setHealth] = useState(100);
+    const [health] = useState(100);
     const movement = useKeyboardMovement();
 
     const lastAimSentAt = useRef(0);
