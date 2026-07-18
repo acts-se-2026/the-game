@@ -131,7 +131,7 @@ def test_lethal_bullet_reports_killer():
     state = State()
 
     shooter = state.add_player(Player('shooter', Vec2(100, 100)))
-    target = state.add_player(Player('target', Vec2(100 + BULLET_SPEED, 100)))
+    target = state.add_player(Player('target', Vec2(100 + CANNON_END_RADIUS + BULLET_SPEED, 100)))
     target.hp = 10
     shooter.rotation = 0
 
