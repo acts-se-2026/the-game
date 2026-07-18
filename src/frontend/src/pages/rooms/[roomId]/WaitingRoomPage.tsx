@@ -5,6 +5,7 @@ import { useUser } from "../../../context/UserContext/useUser";
 import { useEffect, useRef, useState } from "react";
 import { useWsConnection } from "../../../context/WsContext/useWsConnection";
 import type { GameStartPacket, PlayerListUpdatePacket, WsUnknownPacket } from "../../../context/WsContext/types";
+import { playSfx, preloadSfx } from "../../../game/sfx";
 
 const baseWsPath = import.meta.env.VITE_WS_PATH || "/api/ws";
 
@@ -15,6 +16,12 @@ export default function WaitingRoomPage() {
     const { socket, connectWs, disconnectWs, sendMessage} = useWsConnection();
     const [players, setPlayers] = useState<RoomPlayer[]>([]);
     const goToArenaRef = useRef(false);
+
+    const isStartDisabled = players.length <= 1;
+
+    useEffect(() => {
+        preloadSfx();
+    }, []);
 
     useEffect(() => {
         if (!user) {
@@ -48,6 +55,7 @@ export default function WaitingRoomPage() {
                 }
                 case "game_start": {
                     const gameStartPacket = packet as GameStartPacket;
+                    playSfx("new_round");
                     goToArenaRef.current = true;
                     navigate(`/rooms/${roomId}/arena`, { state: { arenaState: gameStartPacket.data } });
                     break;
@@ -77,6 +85,7 @@ export default function WaitingRoomPage() {
     }, [socket, navigate, roomId]);
 
     const handleStartMatch = () => {
+        playSfx("start_game");
         sendMessage("game_start");
     }
         
@@ -101,7 +110,8 @@ export default function WaitingRoomPage() {
                         <button
                             type="button"
                             onClick={handleStartMatch}
-                            className="rounded-xl bg-blue-500 px-5 py-2.5 font-black text-white transition hover:bg-blue-400"
+                            className="rounded-xl bg-blue-500 px-5 py-2.5 font-black text-white transition hover:bg-blue-400 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            disabled={isStartDisabled}
                         >
                             Start match
                         </button>

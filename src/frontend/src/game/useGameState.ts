@@ -7,6 +7,8 @@ import type { GameStartPacket, WsUnknownPacket } from "../context/WsContext/type
 import { useLocation } from "react-router";
 import { processNewState } from "./processNewState";
 import { determineMatchResult, findKillerName, type MatchResult } from "./matchResult";
+import { playSfx, preloadSfx } from "./sfx";
+import { didLocalPlayerTakeDamage, getResultSfx } from "./sfxTriggers";
 
 const EMPTY_ARENA: ArenaState = {
     obstacles: [],
@@ -35,6 +37,10 @@ export function useGameState() {
     const lastSentHeading = useRef<number | null>(null);
 
     useEffect(() => {
+        preloadSfx();
+    }, []);
+
+    useEffect(() => {
         const currentSocket = socket.current;
         if (!currentSocket) return;
 
@@ -46,6 +52,17 @@ export function useGameState() {
                     const arenaState = packet.data as GameStartPacket["data"];
                     const previousPlayers = arena.current.players;
                     arena.current = processNewState(arenaState, arena.current, user?.session_id);
+                  
+                    const localPlayerTookDamage = didLocalPlayerTakeDamage(
+                        previousPlayers,
+                        arenaState.players,
+                        user?.session_id
+                    );
+
+                    if (localPlayerTookDamage) {
+                        playSfx("bullethit");
+                    }
+
                     setKilledBy((currentKiller) =>
                         currentKiller ?? findKillerName(arenaState.deaths ?? [], previousPlayers, user?.session_id)
                     );
@@ -80,6 +97,15 @@ export function useGameState() {
     useEffect(() => {
         sendMessage("player_move", { x: movement.x, y: movement.y });
     }, [movement, sendMessage]);
+
+    useEffect(() => {
+        const resultSfx = getResultSfx(matchResult);
+        if (!resultSfx) {
+            return;
+        }
+
+        playSfx(resultSfx);
+    }, [matchResult]);
 
     const sendAim = useCallback(() => {
         const pos = lastAimPos.current;
@@ -118,6 +144,7 @@ export function useGameState() {
     }, [sendAim]);
 
     const handleShoot = useCallback(() => {
+        playSfx("gunshot");
         sendMessage("player_shoot");
     }, [sendMessage]);
 

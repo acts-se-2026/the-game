@@ -36,6 +36,7 @@ export type Chest = {
     x: number
     y: number
   }
+  effect: string
 }
 
 export type ArenaState = {
