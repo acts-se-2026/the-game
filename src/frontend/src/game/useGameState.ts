@@ -10,57 +10,22 @@ import { determineMatchResult, findKillerName, type MatchResult } from "./matchR
 import { playSfx, preloadSfx } from "./sfx";
 import { didLocalPlayerTakeDamage, getResultSfx } from "./sfxTriggers";
 
-const ENEMY_COLORS = ["#fb7185", "#fbbf24", "#34d399", "#a78bfa", "#f472b6"];
-
-function buildArenaState(data: GameStartPacket["data"] | undefined, localId: string | undefined): ArenaState | null {
-    if (!data || !Array.isArray(data.players)) return null;
-
-    let enemyIndex = 0;
-    return {
-        obstacles: (data.obstacles ?? []).map((obs) => ({
-            x: obs.x,
-            y: obs.y,
-            size: obs.size,
-        })),
-        players: data.players.map((player) => {
-            const isLocal = localId != null && player.id === localId;
-            return {
-                id: player.id,
-                username: player.username || player.id,
-                x: player.x,
-                y: player.y,
-                hp: player.hp,
-                heading: player.heading,
-                isLocal,
-                color: isLocal ? "#60a5fa" : ENEMY_COLORS[enemyIndex++ % ENEMY_COLORS.length],
-            };
-        }),
-        bullets: (data.bullets ?? []).map((bullet) => ({
-            x: bullet.x,
-            y: bullet.y,
-            heading: bullet.heading,
-            ownerId : bullet.ownerId
-        })),
-
-        chests: (data.chests ?? []).map((chest) => ({
-            x: chest.x,
-            y: chest.y,
-            size : {
-                x: chest.size.x,
-                y: chest.size.y
-            },
-            effect: chest.effect,
-        })),
-
-    };
-}
+const EMPTY_ARENA: ArenaState = {
+    obstacles: [],
+    players: [],
+    bullets: [],
+    chests: [],
+    explosion_positions: []
+};
 
 export function useGameState() {
     const location = useLocation();
     const { socket, sendMessage } = useWsConnection();
     const { user } = useUser();
     const arena = useRef<ArenaState>(
-        buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [], chests: []}
+        location.state?.arenaState
+            ? processNewState(location.state.arenaState, EMPTY_ARENA, user?.session_id)
+            : EMPTY_ARENA
     );
     const [matchResult, setMatchResult] = useState<MatchResult>(null);
     const [killedBy, setKilledBy] = useState<string | null>(null);
@@ -86,13 +51,13 @@ export function useGameState() {
                 case "state_diff": {
                     const arenaState = packet.data as GameStartPacket["data"];
                     const previousPlayers = arena.current.players;
+                    arena.current = processNewState(arenaState, arena.current, user?.session_id);
+                  
                     const localPlayerTookDamage = didLocalPlayerTakeDamage(
                         previousPlayers,
                         arenaState.players,
                         user?.session_id
                     );
-
-                    arena.current = processNewState(arenaState, arena.current);
 
                     if (localPlayerTookDamage) {
                         playSfx("bullethit");
