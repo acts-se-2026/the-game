@@ -438,9 +438,10 @@ class State:
 
         self.players = alive_players
 
-        if self.current_frame == self.next_chest_spawn and len(self.chests) <= 4:
-            self.add_chest_at_random_position()
+        if self.current_frame == self.next_chest_spawn:
             self.next_chest_spawn += CHEST_SPAWN_DELAY
+            if len(self.chests) <= 3:
+                self.add_chest_at_random_position()
         
         #REMOVE PLAYER EFFECTS
         for player in self.players:
