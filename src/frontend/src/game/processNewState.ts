@@ -10,6 +10,7 @@ export const processNewState = (newState: GameStartPacket["data"], currentState:
             x: newPlayer.x,
             y: newPlayer.y,
             heading: newPlayer.heading,
+            hp: newPlayer.hp,
             color: existingPlayer?.color || "#60a5fa", // Keep existing color or default to blue
             isLocal: existingPlayer?.isLocal || false,
         };

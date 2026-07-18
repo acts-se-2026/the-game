@@ -27,6 +27,7 @@ function buildArenaState(data: GameStartPacket["data"] | undefined, localId: str
                 username: player.username || player.id,
                 x: player.x,
                 y: player.y,
+                hp: player.hp,
                 heading: player.heading,
                 isLocal,
                 color: isLocal ? "#60a5fa" : ENEMY_COLORS[enemyIndex++ % ENEMY_COLORS.length],
@@ -50,7 +51,7 @@ export function useGameState() {
     );
     const [matchResult, setMatchResult] = useState<MatchResult>(null);
     const [killedBy, setKilledBy] = useState<string | null>(null);
-    const [health] = useState(100);
+    const [health, setHealth] = useState(100);
     const movement = useKeyboardMovement();
 
     const lastAimSentAt = useRef(0);
@@ -75,6 +76,9 @@ export function useGameState() {
                     setMatchResult((currentResult) =>
                         currentResult ?? determineMatchResult(arena.current.players, user?.session_id)
                     );
+
+                    const newHealth = arena.current.players.find(p => p.id === user?.session_id)?.hp ?? 100;
+                    setHealth(newHealth);
                     break;
                 }
                 default:

@@ -56,7 +56,6 @@ export class ArenaRenderer {
             const owner = players.find(
                 player => player.id === bullet.ownerId
             );
-            console.log(bullet.ownerId)
             
             graphics.clear()
                 .circle(bullet.x, bullet.y, 5).fill({
