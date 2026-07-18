@@ -54,13 +54,13 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
         if (!pixi) return;
 
         const tick = () => {
-            pixi.renderer.syncState(stateRef.current);
+            pixi.renderer.syncState(stateRef.current, user?.session_id);
         };
         pixi.app.ticker.add(tick);
         return () => {
             pixi.app.ticker.remove(tick);
         };
-    }, [stateRef, pixi]);
+    }, [stateRef, pixi, user?.session_id]);
 
     // This effect runs once when the component is first loaded
     useEffect(() => {
