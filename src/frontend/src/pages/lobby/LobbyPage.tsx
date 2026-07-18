@@ -4,6 +4,7 @@ import PageTitleTemplate from "../../components/PageTitleTemplate";
 import RoomCard, { type PublicRoom } from "./components/RoomCard";
 import { useUser } from "../../context/UserContext";
 import { backendApi } from "../../api/backend";
+import LogoutButton from "./components/LogoutButton";
 
 type FetchRoomsResponse = {
     rooms: PublicRoom[];
@@ -46,6 +47,8 @@ export default function LobbyPage() {
                 <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="font-bold text-slate-300">Playing as {user?.username}</p>
                     <div className="flex flex-wrap gap-3">
+                        <LogoutButton />
+                        
                         <button
                             type="button"
                             onClick={handleCreateRoom}
