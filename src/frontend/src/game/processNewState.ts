@@ -4,7 +4,7 @@ import type { ArenaState } from "./types";
 const ENEMY_COLORS = ["#fb7185", "#fbbf24", "#34d399", "#a78bfa", "#f472b6"];
 
 export const processNewState = (newState: GameStartPacket["data"], currentState: ArenaState, localId?: string): ArenaState => {
-    const usedColors = new Set(currentState.players.map(p => p.color));S
+    const usedColors = new Set(currentState.players.map(p => p.color));
 
     const updatedPlayers = newState.players.map((newPlayer) => {
         const existingPlayer = currentState.players.find((p) => p.id === newPlayer.id);
