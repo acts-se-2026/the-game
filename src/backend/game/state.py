@@ -40,6 +40,25 @@ class HealthChest:
             "x": self.pos.x,
             "y": self.pos.y,
         }
+ENABLE_CHESTS = False
+HEALTH_CHEST_SIZE = Vec2(10, 10)
+CHEST_SPAWN_DELAY = 200
+
+
+class HealthChest:
+    def __init__(self, pos):
+        self.pos = pos
+        self.health = 50
+
+        self.box = Box(self.pos - HEALTH_CHEST_SIZE / 2, HEALTH_CHEST_SIZE)
+
+        self.used = False
+    
+    def to_dict(self):
+        return {
+            "x": self.pos.x,
+            "y": self.pos.y,
+        }
 
 class Box:
     def __init__(self, pos: Vec2, size: Vec2):
