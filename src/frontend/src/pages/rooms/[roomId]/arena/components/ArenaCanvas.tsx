@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import { Application } from "pixi.js";
 import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState } from "../../../../../game/types";
 import { ArenaRenderer } from "../lib/ArenaRenderer";
+import { useUser } from "../../../../../context/UserContext/useUser"
 
 type ArenaCanvasProps = {
     stateRef: RefObject<ArenaState>;
@@ -21,6 +22,8 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
     // We use refs for callbacks so we don't have to restart Pixi when they change
     const onAimRef = useRef(onAim);
     const onShootRef = useRef(onShoot);
+
+    const { user, isLoading } = useUser();
 
     // Resize the Pixi canvas to fit the wrapper while maintaining aspect ratio
     useEffect(() => {
@@ -52,12 +55,12 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
 
         let frame: number;
         const tick = () => {
-            pixi.renderer.syncState(stateRef.current);
+            pixi.renderer.syncState(stateRef.current, user.session_id);
             frame = requestAnimationFrame(tick);
         };
         frame = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(frame);
-    }, [stateRef, pixi]);
+    }, [stateRef, pixi, user]);
 
     // This effect runs once when the component is first loaded
     useEffect(() => {
