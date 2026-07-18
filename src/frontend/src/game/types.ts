@@ -15,6 +15,7 @@ export type Player = {
   username: string
   x: number
   y: number
+  hp: number
   /** Direction the player faces, measured in radians. Zero points right. */
   heading: number
   color: string
