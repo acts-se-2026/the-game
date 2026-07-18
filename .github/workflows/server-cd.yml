@@ -51,6 +51,15 @@ jobs:
           ssh dev@killordie.mooo.com "echo HELLO > hello.txt"
           echo "${{ secrets.GITHUB_TOKEN }}" | ssh dev@killordie.mooo.com "docker login ghcr.io -u ${{ github.actor }} --password-stdin"
 
-          ssh dev@killordie.mooo.com "docker compose down && docker system prune"
+          # 1. Copy the updated docker-compose file first
           scp docker-compose.yml dev@killordie.mooo.com:/home/dev/
-          ssh dev@killordie.mooo.com "docker compose up -d"
+
+          # 2. Pull the newly pushed images from GHCR onto the VM
+          ssh dev@killordie.mooo.com "docker compose pull"
+
+          # 3. Restart the containers with the fresh images
+          ssh dev@killordie.mooo.com "docker compose down && docker compose up -d"
+          
+          # 4. Clean up old, unused images left behind after the pull
+          ssh dev@killordie.mooo.com "docker image prune -f"
+
