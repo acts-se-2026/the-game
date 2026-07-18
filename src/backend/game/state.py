@@ -93,16 +93,18 @@ class Bullet:
 
 
 class StateDiff:
-    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[Vec2]):
+    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[Vec2], deaths: list[dict]):
         self.allBullets = allBullets # list of Bullet
         self.players = players # list of Player
         self.explosion_positions = explosion_positions # list of Vec2
+        self.deaths = deaths
 
     def to_dict(self):
         return {
             "players": [player.to_dict() for player in self.players],
             "bullets": [bullet.to_dict() for bullet in self.allBullets],
             "explosion_positions": [pos.to_dict() for pos in self.explosion_positions],
+            "deaths": self.deaths,
         }
 
 
@@ -307,7 +309,8 @@ class State:
         self.unsent_bullet_ids.clear()
 
         
-        removed_bullet_ids = set()            
+        removed_bullet_ids = set()
+        killers_by_player = {}
         for bullet in self.bullets:
             #change position
             bullet.pos += BULLET_SPEED * bullet.movement_dir
@@ -323,16 +326,23 @@ class State:
                     continue
                 if Box.area_colliding(player.get_collision_box(), bullet.get_collision_box()):
                     player.hit()
+                    if player.hp <= 0:
+                        killers_by_player.setdefault(player.uuid, bullet.owner_uuid)
                     removed_bullet_ids.add(bullet.id)
                     break # this bullet cannot hit any other players
 
         explosion_positions = []
+        deaths = []
 
         # remove dead players
         alive_players = []
         for player in self.players: 
             if player.hp <= 0:
                 explosion_positions.append(player.pos)
+                deaths.append({
+                    "player_id": player.uuid,
+                    "killer_id": killers_by_player.get(player.uuid),
+                })
             else:
                 alive_players.append(player)
 
@@ -347,7 +357,8 @@ class State:
         return StateDiff(
             players=self.players,
             allBullets=self.bullets,
-            explosion_positions=explosion_positions
+            explosion_positions=explosion_positions,
+            deaths=deaths
         )
 
 

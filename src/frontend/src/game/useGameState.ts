@@ -6,6 +6,7 @@ import { useUser } from "../context/UserContext/useUser";
 import type { GameStartPacket, WsUnknownPacket } from "../context/WsContext/types";
 import { useLocation } from "react-router";
 import { processNewState } from "./processNewState";
+import { determineMatchResult, findKillerName, type MatchResult } from "./matchResult";
 
 const ENEMY_COLORS = ["#fb7185", "#fbbf24", "#34d399", "#a78bfa", "#f472b6"];
 
@@ -23,6 +24,7 @@ function buildArenaState(data: GameStartPacket["data"] | undefined, localId: str
             const isLocal = localId != null && player.id === localId;
             return {
                 id: player.id,
+                username: player.username || player.id,
                 x: player.x,
                 y: player.y,
                 heading: player.heading,
@@ -46,6 +48,8 @@ export function useGameState() {
     const arena = useRef<ArenaState>(
         buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [] }
     );
+    const [matchResult, setMatchResult] = useState<MatchResult>(null);
+    const [killedBy, setKilledBy] = useState<string | null>(null);
     const [health] = useState(100);
     const movement = useKeyboardMovement();
 
@@ -63,7 +67,14 @@ export function useGameState() {
             switch (packet.type) {
                 case "state_diff": {
                     const arenaState = packet.data as GameStartPacket["data"];
+                    const previousPlayers = arena.current.players;
                     arena.current = processNewState(arenaState, arena.current);
+                    setKilledBy((currentKiller) =>
+                        currentKiller ?? findKillerName(arenaState.deaths ?? [], previousPlayers, user?.session_id)
+                    );
+                    setMatchResult((currentResult) =>
+                        currentResult ?? determineMatchResult(arena.current.players, user?.session_id)
+                    );
                     break;
                 }
                 default:
@@ -84,7 +95,7 @@ export function useGameState() {
             currentSocket.removeEventListener("message", handleIncomingPacket);
             currentSocket.removeEventListener("close", handleSocketClose);
         };
-    }, [socket]);
+    }, [socket, user?.session_id]);
 
     useEffect(() => {
         sendMessage("player_move", { x: movement.x, y: movement.y });
@@ -130,5 +141,5 @@ export function useGameState() {
         sendMessage("player_shoot");
     }, [sendMessage]);
 
-    return { arena, health, handleAim, handleShoot };
+    return { arena, health, matchResult, killedBy, handleAim, handleShoot };
 }

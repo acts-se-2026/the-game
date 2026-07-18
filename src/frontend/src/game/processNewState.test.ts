@@ -5,7 +5,7 @@ import type { GameStartPacket } from "../context/WsContext/types";
 
 const makeCurrentState = (): ArenaState => ({
     players: [
-        { id: "p1", x: 0, y: 0, heading: 0, color: "#ff0000", isLocal: true },
+        { id: "p1", x: 0, y: 0, heading: 0, color: "#ff0000", isLocal: true, username: "User" },
     ],
     obstacles: [{ x: 5, y: 5, size: { x: 10, y: 10 } }],
     bullets: [],

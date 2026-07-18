@@ -1,4 +1,4 @@
-import { Application, Container, Graphics } from "pixi.js";
+import { Application, Container, Graphics, Text } from "pixi.js";
 import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player } from "../../../../../game/types";
 
 const PLAYER_RADIUS = 18;
@@ -99,18 +99,32 @@ export class ArenaRenderer {
                 body.name = "body";
                 
                 const arrow = new Graphics();
+                arrow.name = "arrow";
                 const arrowLength = PLAYER_RADIUS + 16;
                 arrow.moveTo(0, 0).lineTo(arrowLength, 0).stroke({ color: 0x0f172a, width: 5, cap: "round" })
                      .moveTo(arrowLength, 0).lineTo(arrowLength - 10, -7).lineTo(arrowLength - 10, 7).closePath().fill({ color: 0x0f172a });
 
-                container.addChild(body, arrow);
+                const username = new Text({
+                    text: player.username,
+                    style: {
+                        fill: 0xf8fafc,
+                        fontFamily: "Arial, sans-serif",
+                        fontSize: 13,
+                        fontWeight: "bold",
+                        stroke: { color: 0x0f172a, width: 3 },
+                    },
+                });
+                username.name = "username";
+                username.anchor.set(0.5, 1);
+                username.y = -(PLAYER_RADIUS + 8);
+
+                container.addChild(body, arrow, username);
                 this.world.addChild(container);
                 this.players.set(player.id, container);
             }
             
             container.x = player.x;
             container.y = player.y;
-            container.rotation = player.heading;
 
             const body = container.getChildByName("body") as Graphics;
             body.clear()
@@ -119,6 +133,13 @@ export class ArenaRenderer {
                     alpha: player.isLocal ? 0.22 : 0.1,
                 })
                 .circle(0, 0, PLAYER_RADIUS).fill({ color: player.color }).stroke({ color: 0xf8fafc, width: 2 });
+
+
+            const username = container.getChildByName("username") as Text;
+            username.text = player.username;
+
+            const arrow = container.getChildByName("arrow") as Graphics;
+            arrow.rotation = player.heading;
         }
     }
 

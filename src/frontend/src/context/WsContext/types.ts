@@ -28,6 +28,7 @@ export interface GameStartPacket {
         }[];
         players: {
             id: string;
+            username?: string;
             x: number;
             y: number;
             heading: number;
@@ -38,5 +39,11 @@ export interface GameStartPacket {
             heading: number;
             ownerId : string;
         }[];
+        deaths?: DeathRecord[];
     }
+}
+
+export interface DeathRecord {
+    player_id: string;
+    killer_id: string | null;
 }

@@ -1,6 +1,8 @@
+import asyncio
 import math
-
 import pytest
+from app.auth.types import SessionPayload
+from game.backendConnections.room import Room
 
 from game.state import (
     BULLET_SPEED,
@@ -13,6 +15,35 @@ from game.state import (
     State,
 )
 from game.vector import Vec2
+
+
+class FakeWebSocket:
+    def __init__(self):
+        self.messages = []
+
+    async def send_json(self, message):
+        self.messages.append(message)
+
+
+def test_game_start_includes_player_names():
+    async def start_game():
+        room = Room('room-id')
+        first_socket = FakeWebSocket()
+        second_socket = FakeWebSocket()
+        room.connect(first_socket, SessionPayload(username='Alice', session_id='player-1', exp=0))
+        room.connect(second_socket, SessionPayload(username='Bob', session_id='player-2', exp=0))
+
+        room.startGame()
+        await asyncio.sleep(0.01)
+        room.stopGame()
+
+        game_start = next(message for message in first_socket.messages if message['type'] == 'game_start')
+        assert {(player['id'], player['username']) for player in game_start['data']['players']} == {
+            ('player-1', 'Alice'),
+            ('player-2', 'Bob'),
+        }
+
+    asyncio.run(start_game())
 
 
 def test_collisions():
@@ -104,6 +135,38 @@ def test_bullet_hits_player():
 
     assert target.hp == 90
     assert len(state.bullets) == 0
+
+
+def test_lethal_bullet_reports_killer():
+    state = State()
+
+    shooter = state.add_player(Player('shooter', Vec2(100, 100)))
+    target = state.add_player(Player('target', Vec2(100 + CANNON_END_RADIUS + BULLET_SPEED, 100)))
+    target.hp = 10
+    shooter.rotation = 0
+
+    state.current_frame = SHOOTING_DELAY + 1
+    state.try_shoot_player_bullet(shooter.uuid)
+
+    changes = state.step_frame().to_dict()
+
+    assert changes['deaths'] == [{
+        'player_id': target.uuid,
+        'killer_id': shooter.uuid,
+    }]
+
+
+def test_removed_player_without_attacker_reports_unknown_killer():
+    state = State()
+    player = state.add_player(Player('disconnected-player', Vec2(100, 100)))
+
+    state.kill_player(player.uuid)
+    changes = state.step_frame().to_dict()
+
+    assert changes['deaths'] == [{
+        'player_id': player.uuid,
+        'killer_id': None,
+    }]
 
 def test_bullet_delay():
     state = State()
