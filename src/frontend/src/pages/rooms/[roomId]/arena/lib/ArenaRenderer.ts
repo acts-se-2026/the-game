@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import { Application, Container, Graphics } from "pixi.js";
 import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player, type Chest } from "../../../../../game/types";
+=======
+import { Application, Container, Graphics, Text } from "pixi.js";
+import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player } from "../../../../../game/types";
+>>>>>>> origin/main
 
 const PLAYER_RADIUS = 18;
 const GRID_SIZE = 30;
@@ -15,12 +20,14 @@ export class ArenaRenderer {
     constructor(app: Application) {
         this.app = app;
         this.world = new Container();
+        this.world.sortableChildren = true;
         this.app.stage.addChild(this.world);
         this.initBackground();
     }
 
     private initBackground() {
         const grid = new Graphics();
+        grid.zIndex = 0;
         grid.rect(0, 0, ARENA_WIDTH, ARENA_HEIGHT).fill({ color: 0x122032 });
         for (let x = 0; x <= ARENA_WIDTH; x += GRID_SIZE) {
             grid.moveTo(x, 0).lineTo(x, ARENA_HEIGHT);
@@ -49,6 +56,7 @@ export class ArenaRenderer {
         bullets.forEach((bullet, idx) => {
             const key = String(idx);
             const graphics = new Graphics();
+            graphics.zIndex = 30;
             this.world.addChild(graphics);
             this.bullets.set(key, graphics);
 
@@ -93,6 +101,7 @@ export class ArenaRenderer {
         data.forEach((obstacle, idx) => {
             const key = String(idx);
             const graphics = new Graphics();
+            graphics.zIndex = 10;
             this.world.addChild(graphics);
             this.obstacles.set(key, graphics);
 
@@ -117,22 +126,37 @@ export class ArenaRenderer {
             let container = this.players.get(player.id);
             if (!container) {
                 container = new Container();
+                container.zIndex = 20;
                 const body = new Graphics();
                 body.name = "body";
                 
                 const arrow = new Graphics();
+                arrow.name = "arrow";
                 const arrowLength = PLAYER_RADIUS + 16;
                 arrow.moveTo(0, 0).lineTo(arrowLength, 0).stroke({ color: 0x0f172a, width: 5, cap: "round" })
                      .moveTo(arrowLength, 0).lineTo(arrowLength - 10, -7).lineTo(arrowLength - 10, 7).closePath().fill({ color: 0x0f172a });
 
-                container.addChild(body, arrow);
+                const username = new Text({
+                    text: player.username,
+                    style: {
+                        fill: 0xf8fafc,
+                        fontFamily: "Arial, sans-serif",
+                        fontSize: 13,
+                        fontWeight: "bold",
+                        stroke: { color: 0x0f172a, width: 3 },
+                    },
+                });
+                username.name = "username";
+                username.anchor.set(0.5, 1);
+                username.y = -(PLAYER_RADIUS + 8);
+
+                container.addChild(body, arrow, username);
                 this.world.addChild(container);
                 this.players.set(player.id, container);
             }
             
             container.x = player.x;
             container.y = player.y;
-            container.rotation = player.heading;
 
             const body = container.getChildByName("body") as Graphics;
             body.clear()
@@ -141,6 +165,13 @@ export class ArenaRenderer {
                     alpha: player.isLocal ? 0.22 : 0.1,
                 })
                 .circle(0, 0, PLAYER_RADIUS).fill({ color: player.color }).stroke({ color: 0xf8fafc, width: 2 });
+
+
+            const username = container.getChildByName("username") as Text;
+            username.text = player.username;
+
+            const arrow = container.getChildByName("arrow") as Graphics;
+            arrow.rotation = player.heading;
         }
     }
 

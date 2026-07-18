@@ -2,15 +2,17 @@ import { useLocation, useNavigate, useParams } from "react-router";
 import { useGameState } from "../../../../game/useGameState";
 import ArenaCanvas from "./components/ArenaCanvas";
 import { useWsConnection } from "../../../../context/WsContext/useWsConnection";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import MatchResultOverlay from "./components/MatchResultOverlay";
 
 export default function ArenaPage() {
     const location = useLocation();
     const navigate = useNavigate();
     const { roomId = "PREVIEW" } = useParams();
-    const { arena, health, handleAim, handleShoot } = useGameState();
+    const { arena, health, matchResult, killedBy, handleAim, handleShoot } = useGameState();
     const { isConnected, disconnectWs } = useWsConnection();
     const hasRedirectedRef = useRef(false);
+    const [isLossOverlayDismissed, setIsLossOverlayDismissed] = useState(false);
 
     const hasArenaState = Boolean(location.state?.arenaState);
 
@@ -50,8 +52,13 @@ export default function ArenaPage() {
                     </button>
                 </header>
 
-                <div className="flex min-h-0 flex-1 items-center justify-center">
+                <div className="relative flex min-h-0 flex-1 items-center justify-center">
                     <ArenaCanvas stateRef={arena} onAim={handleAim} onShoot={handleShoot} />
+                    <MatchResultOverlay
+                        result={matchResult === "lose" && isLossOverlayDismissed ? null : matchResult}
+                        killedBy={killedBy}
+                        onSpectate={() => setIsLossOverlayDismissed(true)}
+                    />
                 </div>
             </div>
         </main>
