@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.config import config
 
-from app.routes.test import testRouter
 from app.routes.ws import wsRouter
 from app.routes.auth import authRouter
 from app.routes.rooms import roomsRouter
@@ -25,7 +24,6 @@ app.add_middleware(
 )
 
 
-app.include_router(testRouter)
 app.include_router(wsRouter)
 app.include_router(authRouter)
 app.include_router(roomsRouter)
