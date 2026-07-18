@@ -34,23 +34,31 @@ export class ArenaRenderer {
     public syncState(state: ArenaState) {
         this.syncObstacles(state.obstacles);
         this.syncPlayers(state.players);
-        this.syncBullets(state.bullets);
+        this.syncBullets(state.bullets, state.players);
     }
 
-    private syncBullets(data: Bullet[]) {
+    private syncBullets(bullets: Bullet[], players: Player[]) {
         for (const graphics of this.bullets.values()) {
             graphics.destroy(true);
         }
         this.bullets.clear();
 
-        data.forEach((bullet, idx) => {
+
+        bullets.forEach((bullet, idx) => {
             const key = String(idx);
             const graphics = new Graphics();
             this.world.addChild(graphics);
             this.bullets.set(key, graphics);
 
+            const owner = players.find(
+                player => player.id === bullet.ownerId
+            );
+            console.log(bullet.ownerId)
+            
             graphics.clear()
-                .circle(bullet.x, bullet.y, 5).fill({ color: 0xff0000 });
+                .circle(bullet.x, bullet.y, 5).fill({
+                    color: owner ? Number(owner.color.replace("#", "0x")) : 0xff0000
+                });
         });
     }
 
