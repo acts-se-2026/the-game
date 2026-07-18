@@ -125,30 +125,26 @@ class State:
 
     # Generates obstacles in a box grid
     def obstacle_generator():
-
         #--CREATES A MAP WITH RANDOM OBSTACLE POSITIONS--#    
-        #   
-        obstacles = [] # list of Box class
-        obstacles_grid_pos = set() #position of each obsticle in grid: (0, 0) is top left (9, 9) would be bottom right
+        while True:
+            obstacles = [] # list of Box class
+            obstacles_grid_pos = set() #position of each obsticle in grid: (0, 0) is top left (9, 9) would be bottom right
 
-        obstacle_cnt = random.randint(OBSTACLE_CNT_MIN, OBSTACLE_CNT_MAX)
-        for i in range(obstacle_cnt):
-            x = random.randint(0, GRID_SIZE.x-1)
-            y = random.randint(0, GRID_SIZE.y-1)
-
-            while (x, y) in obstacles_grid_pos or State.is_diagonal(x, y, obstacles_grid_pos):
+            obstacle_cnt = random.randint(OBSTACLE_CNT_MIN, OBSTACLE_CNT_MAX)
+            for i in range(obstacle_cnt):
                 x = random.randint(0, GRID_SIZE.x-1)
                 y = random.randint(0, GRID_SIZE.y-1)
-             
-            obstacles_grid_pos.add((x, y))
-            obstacles.append(Box(Vec2(x*GRID_BOX_SIZE.x, y*GRID_BOX_SIZE.y), GRID_BOX_SIZE))
 
-        #--CHECKS IF AN AREA IS BLOCKED BY OBSTACLES--#
-        if not State.check_map_validity(obstacles_grid_pos):
-            return State.obstacle_generator()
-        
-        print(obstacles_grid_pos)
-        return obstacles
+                while (x, y) in obstacles_grid_pos or State.is_diagonal(x, y, obstacles_grid_pos):
+                    x = random.randint(0, GRID_SIZE.x-1)
+                    y = random.randint(0, GRID_SIZE.y-1)
+                
+                obstacles_grid_pos.add((x, y))
+                obstacles.append(Box(Vec2(x*GRID_BOX_SIZE.x, y*GRID_BOX_SIZE.y), GRID_BOX_SIZE))
+
+            #--CHECKS IF AN AREA IS BLOCKED BY OBSTACLES--#
+            if State.check_map_validity(obstacles_grid_pos):
+                return obstacles
 
     def is_diagonal(x, y, obstacles_grid_pos):
         #This checks if (x, y) obstacle is connected ONLY diagonally with another obstacle
@@ -174,8 +170,8 @@ class State:
         queue = []
 
         found = False
-        for y in range(GRID_SIZE.y-1):
-            for x in range(GRID_SIZE.x-1):
+        for y in range(GRID_SIZE.y):
+            for x in range(GRID_SIZE.x):
                 if (x, y) not in obstacles_grid_pos:
                     start = (x, y)
                     found=True
