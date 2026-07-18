@@ -5,7 +5,6 @@ from app.auth.types import SessionPayload
 from game.backendConnections.room import Room
 
 from game.state import (
-    BULLET_SIZE,
     BULLET_SPEED,
     CANNON_END_RADIUS,
     PLAYER_SIZE,
