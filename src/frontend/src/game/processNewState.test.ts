@@ -17,7 +17,7 @@ const makePacketData = (): GameStartPacket["data"] => ({
         { id: "p1", x: 100, y: 200, heading: 1.5 },
         { id: "p2", x: 300, y: 400, heading: 0 },
     ],
-    bullets: [{ x: 10, y: 20, heading: 0.5 }],
+    bullets: [{ x: 10, y: 20, heading: 0.5, ownerId: 'p1' }],
 });
 
 describe("processNewState", () => {
@@ -44,6 +44,6 @@ describe("processNewState", () => {
     it("replaces the bullets with those from the packet", () => {
         const result = processNewState(makePacketData(), makeCurrentState());
 
-        expect(result.bullets).toEqual([{ x: 10, y: 20, heading: 0.5 }]);
+        expect(result.bullets).toEqual([{ x: 10, y: 20, heading: 0.5, ownerId: "p1" }]);
     });
 });
