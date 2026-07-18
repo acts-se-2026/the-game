@@ -1,5 +1,5 @@
 import { Application, Container, Graphics } from "pixi.js";
-import { ARENA_SIZE, type ArenaState, type Bullet, type Obstacle, type Player } from "../../../../../game/types";
+import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player } from "../../../../../game/types";
 
 const PLAYER_RADIUS = 18;
 const GRID_SIZE = 30;
@@ -20,10 +20,12 @@ export class ArenaRenderer {
 
     private initBackground() {
         const grid = new Graphics();
-        grid.rect(0, 0, ARENA_SIZE, ARENA_SIZE).fill({ color: 0x122032 });
-        for (let pos = 0; pos <= ARENA_SIZE; pos += GRID_SIZE) {
-            grid.moveTo(pos, 0).lineTo(pos, ARENA_SIZE);
-            grid.moveTo(0, pos).lineTo(ARENA_SIZE, pos);
+        grid.rect(0, 0, ARENA_WIDTH, ARENA_HEIGHT).fill({ color: 0x122032 });
+        for (let x = 0; x <= ARENA_WIDTH; x += GRID_SIZE) {
+            grid.moveTo(x, 0).lineTo(x, ARENA_HEIGHT);
+        }
+        for (let y = 0; y <= ARENA_HEIGHT; y += GRID_SIZE) {
+            grid.moveTo(0, y).lineTo(ARENA_WIDTH, y);
         }
         grid.stroke({ color: 0x94a3b8, alpha: 0.12, width: 1 });
         this.world.addChild(grid);

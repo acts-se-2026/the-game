@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { Application } from "pixi.js";
-import { ARENA_SIZE, type ArenaState } from "../../../../../game/types";
+import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState } from "../../../../../game/types";
 import { ArenaRenderer } from "../lib/ArenaRenderer";
 
 type ArenaCanvasProps = {
@@ -16,9 +16,31 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
         renderer: ArenaRenderer;
     } | null>(null);
 
+    const wrapperRef = useRef<HTMLDivElement>(null);
+
     // We use refs for callbacks so we don't have to restart Pixi when they change
     const onAimRef = useRef(onAim);
     const onShootRef = useRef(onShoot);
+
+    // Resize the Pixi canvas to fit the wrapper while maintaining aspect ratio
+    useEffect(() => {
+        const wrapper = wrapperRef.current;
+        const host = hostRef.current;
+        if (!wrapper || !host) return;
+
+        const resize = () => {
+            const { width, height } = wrapper.getBoundingClientRect();
+            if (width <= 0 || height <= 0) return;
+            const scale = Math.min(width / ARENA_WIDTH, height / ARENA_HEIGHT);
+            host.style.width = `${ARENA_WIDTH * scale}px`;
+            host.style.height = `${ARENA_HEIGHT * scale}px`;
+        };
+
+        resize();
+        const observer = new ResizeObserver(resize);
+        observer.observe(wrapper);
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         onAimRef.current = onAim;
@@ -46,10 +68,10 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
             const app = new Application();
             
             try {
-                // Initialize Pixi with the fixed Arena Size (e.g. 600x600)
+                // Initialize Pixi with the fixed Arena Size
                 await app.init({
-                    width: ARENA_SIZE,
-                    height: ARENA_SIZE,
+                    width: ARENA_WIDTH,
+                    height: ARENA_HEIGHT,
                     backgroundAlpha: 0,
                     antialias: true,
                 });
@@ -95,11 +117,13 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
     }, []);
 
     return (
-        <div
-            ref={hostRef}
-            className="aspect-square w-full max-w-[600px] overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/30 [&_canvas]:block [&_canvas]:size-full [&_canvas]:cursor-crosshair [&_canvas]:touch-none"
-            role="application"
-            aria-label="Game arena"
-        />
+        <div ref={wrapperRef} className="flex h-full w-full items-center justify-center">
+            <div
+                ref={hostRef}
+                className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/30 [&_canvas]:block [&_canvas]:size-full [&_canvas]:cursor-crosshair [&_canvas]:touch-none"
+                role="application"
+                aria-label="Game arena"
+            />
+        </div>
     );
 }

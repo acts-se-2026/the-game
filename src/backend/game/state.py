@@ -5,11 +5,12 @@ import random
 # rotations:  0 is right, value is in clockwise radians
 # positions:  (0, 0) is top-left, value in pixels
 
-LEVEL_SIZE = Vec2(600, 600)
-GRID_SIZE = Vec2(5, 5)
+LEVEL_SIZE = Vec2(1280, 720)
+GRID_SIZE = Vec2(16, 9)
 GRID_BOX_SIZE = Vec2(LEVEL_SIZE.x/GRID_SIZE.x, LEVEL_SIZE.y/GRID_SIZE.y)
 
-OBSTACLE_CNT=8
+OBSTACLE_CNT_MIN = 20
+OBSTACLE_CNT_MAX = 45
 
 PLAYER_SIZE = Vec2(36, 36)
 CANNON_END_RADIUS = 36//2 + 16
@@ -130,7 +131,8 @@ class State:
         obstacles = [] # list of Box class
         obstacles_grid_pos = set() #position of each obsticle in grid: (0, 0) is top left (9, 9) would be bottom right
 
-        for i in range(OBSTACLE_CNT):
+        obstacle_cnt = random.randint(OBSTACLE_CNT_MIN, OBSTACLE_CNT_MAX)
+        for i in range(obstacle_cnt):
             x = random.randint(0, GRID_SIZE.x-1)
             y = random.randint(0, GRID_SIZE.y-1)
 
