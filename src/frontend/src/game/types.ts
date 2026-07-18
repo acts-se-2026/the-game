@@ -27,6 +27,7 @@ export type Bullet = {
   y: number
   heading: number
   ownerId: string
+  damage: number
 }
 
 export type Chest = {
