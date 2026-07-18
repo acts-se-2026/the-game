@@ -5,6 +5,7 @@ import { useUser } from "../../../context/UserContext/useUser";
 import { useEffect, useRef, useState } from "react";
 import { useWsConnection } from "../../../context/WsContext/useWsConnection";
 import type { GameStartPacket, PlayerListUpdatePacket, WsUnknownPacket } from "../../../context/WsContext/types";
+import { playSfx, preloadSfx } from "../../../game/sfx";
 
 const baseWsPath = import.meta.env.VITE_WS_PATH || "/api/ws";
 
@@ -15,6 +16,10 @@ export default function WaitingRoomPage() {
     const { socket, connectWs, disconnectWs, sendMessage} = useWsConnection();
     const [players, setPlayers] = useState<RoomPlayer[]>([]);
     const goToArenaRef = useRef(false);
+
+    useEffect(() => {
+        preloadSfx();
+    }, []);
 
     useEffect(() => {
         if (!user) {
@@ -48,6 +53,7 @@ export default function WaitingRoomPage() {
                 }
                 case "game_start": {
                     const gameStartPacket = packet as GameStartPacket;
+                    playSfx("new_round");
                     goToArenaRef.current = true;
                     navigate(`/rooms/${roomId}/arena`, { state: { arenaState: gameStartPacket.data } });
                     break;
@@ -77,6 +83,7 @@ export default function WaitingRoomPage() {
     }, [socket, navigate, roomId]);
 
     const handleStartMatch = () => {
+        playSfx("start_game");
         sendMessage("game_start");
     }
         
