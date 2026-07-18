@@ -1,8 +1,19 @@
-import pytest
-from game.state import Player, Box, State
-from game.state import PLAYER_SIZE, PLAYER_SPEED, SHOOTING_DELAY, BULLET_SPEED, BULLET_SIZE, CANNON_END_RADIUS
-from game.vector import Vec2
 import math
+
+import pytest
+
+from game.state import (
+    BULLET_SPEED,
+    CANNON_END_RADIUS,
+    PLAYER_SIZE,
+    PLAYER_SPEED,
+    SHOOTING_DELAY,
+    Box,
+    Player,
+    State,
+)
+from game.vector import Vec2
+
 
 def test_collisions():
     box1 = Box(Vec2(0, 0), Vec2(5, 5))

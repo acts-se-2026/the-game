@@ -1,12 +1,14 @@
 import math
+
 import pytest
+
 from game.state import (
+    CANNON_END_RADIUS,
+    SHOOTING_DELAY,
     Box,
     Bullet,
     Player,
     State,
-    SHOOTING_DELAY,
-    CANNON_END_RADIUS,
 )
 from game.vector import Vec2
 

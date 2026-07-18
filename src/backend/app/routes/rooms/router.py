@@ -1,10 +1,9 @@
 import uuid
 
-from fastapi import APIRouter
-from game.backendConnections.connectionManager import connectionManager
 from fastapi import APIRouter, Depends
+
 from app.auth.auth import getCurrentUser
-from app.auth.types import SessionPayload
+from game.backendConnections.connectionManager import connectionManager
 
 roomsRouter = APIRouter(prefix="/api/rooms", tags=["rooms"])
 

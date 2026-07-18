@@ -1,5 +1,6 @@
 import jwt
 import pytest
+
 from app.auth.jwt import createSessionToken, decodeSessionToken
 from app.config.config import config
 

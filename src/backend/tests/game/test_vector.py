@@ -1,5 +1,5 @@
-import math
 import pytest
+
 from game.vector import Vec2
 
 

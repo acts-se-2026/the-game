@@ -1,6 +1,7 @@
-from game.vector import Vec2
 import math
 import random
+
+from game.vector import Vec2
 
 # rotations:  0 is right, value is in clockwise radians
 # positions:  (0, 0) is top-left, value in pixels

@@ -1,11 +1,10 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
 from app.config.config import config
-
-from app.routes.ws import wsRouter
 from app.routes.auth import authRouter
 from app.routes.rooms import roomsRouter
+from app.routes.ws import wsRouter
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 ShowDocs = True
 
