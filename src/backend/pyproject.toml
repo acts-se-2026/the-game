@@ -19,5 +19,6 @@ dev = [
 pythonpath = ["."]
 filterwarnings = [
     "ignore::starlette.exceptions.StarletteDeprecationWarning",
-    "ignore:Using `httpx` with `starlette.testclient` is deprecated"
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+    "ignore:The HMAC key is.*below the minimum recommended length:Warning"
 ]

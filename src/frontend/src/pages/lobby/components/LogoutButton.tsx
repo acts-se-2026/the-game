@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { useUser } from "../../../context/UserContext";
+import { useUser } from "../../../context/UserContext/useUser";
 
 const LogoutButton = () => {
     const navigate = useNavigate();
