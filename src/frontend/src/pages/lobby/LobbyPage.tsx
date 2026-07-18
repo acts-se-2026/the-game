@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import PageTitleTemplate from "../../components/PageTitleTemplate";
 import RoomCard, { type PublicRoom } from "./components/RoomCard";
-import { useUser } from "../../context/UserContext";
+import { useUser } from "../../context/UserContext/useUser";
 import { backendApi } from "../../api/backend";
 import LogoutButton from "./components/LogoutButton";
 

@@ -8,7 +8,7 @@ vi.mock("react-router", () => ({
     useNavigate: () => navigate,
 }));
 
-vi.mock("../../../context/UserContext", () => ({
+vi.mock("../../../context/UserContext/useUser", () => ({
     useUser: () => ({ logout }),
 }));
 

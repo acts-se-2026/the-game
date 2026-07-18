@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { type ArenaState } from "./types";
 import { useKeyboardMovement } from "./useKeyboardMovement";
-import { useWsConnection } from "../context/WsContext";
-import { useUser } from "../context/UserContext";
+import { useWsConnection } from "../context/WsContext/useWsConnection";
+import { useUser } from "../context/UserContext/useUser";
 import type { GameStartPacket, WsUnknownPacket } from "../context/WsContext/types";
 import { useLocation } from "react-router";
 import { processNewState } from "./processNewState";
@@ -60,10 +60,11 @@ export function useGameState() {
             const packet = JSON.parse(event.data) as WsUnknownPacket;
 
             switch (packet.type) {
-                case "state_diff":
+                case "state_diff": {
                     const arenaState = packet.data as GameStartPacket["data"];
                     arena.current = processNewState(arenaState, arena.current);
                     break;
+                }
                 default:
                     console.warn("Unknown packet type:", packet.type);
             }

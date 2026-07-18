@@ -3,8 +3,9 @@ import LoginPage from './pages/LoginPage'
 import LobbyPage from './pages/lobby/LobbyPage'
 import WaitingRoomPage from './pages/rooms/[roomId]/WaitingRoomPage'
 import ArenaPage from './pages/rooms/[roomId]/arena/ArenaPage'
-import { UserProvider, useUser } from './context/UserContext/index.tsx'
-import { WebSocketProvider } from './context/WsContext/index.tsx'
+import { UserContextProvider } from './context/UserContext/index.tsx'
+import { useUser } from './context/UserContext/useUser'
+import { WsConnectionProvider } from './context/WsContext/index.tsx'
 
 const ProtectedLayout = () => {
   const { user, isLoading } = useUser()
@@ -43,13 +44,13 @@ export function AppRoutes() {
 
 function App() {
   return (
-    <WebSocketProvider>
-      <UserProvider>
+    <WsConnectionProvider>
+      <UserContextProvider>
         <BrowserRouter>
           <AppRoutes />
         </BrowserRouter>
-      </UserProvider>
-    </WebSocketProvider>
+      </UserContextProvider>
+    </WsConnectionProvider>
   )
 }
 
