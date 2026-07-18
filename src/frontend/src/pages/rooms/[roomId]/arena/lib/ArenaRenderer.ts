@@ -21,6 +21,7 @@ export class ArenaRenderer {
     private lastState: ArenaState | null = null;
     private lastObstacles: Obstacle[] | null = null;
     private lastChests: Chest[] | null = null;
+    private lastLocalPlayerId: string | undefined;
 
     constructor(app: Application) {
         this.world = new Container();
@@ -51,20 +52,21 @@ export class ArenaRenderer {
         this.world.addChild(grid);
     }
 
-    public syncState(state: ArenaState) {
-        if (state === this.lastState) return;
+    public syncState(state: ArenaState, localPlayerId?: string) {
+        if (state === this.lastState && localPlayerId === this.lastLocalPlayerId) return;
 
         if (state.obstacles !== this.lastObstacles) {
             this.syncObstacles(state.obstacles);
             this.lastObstacles = state.obstacles;
         }
-        this.syncPlayers(state.players);
+        this.syncPlayers(state.players, localPlayerId);
         this.syncBullets(state.bullets, state.players);
         if (state.chests !== this.lastChests && !this.sameChests(state.chests, this.lastChests)) {
             this.syncChests(state.chests);
         }
         this.lastChests = state.chests;
         this.lastState = state;
+        this.lastLocalPlayerId = localPlayerId;
     }
 
     private syncBullets(bullets: Bullet[], players: Player[]) {
@@ -97,7 +99,7 @@ export class ArenaRenderer {
         }
     }
 
-    private syncPlayers(data: Player[]) {
+    private syncPlayers(data: Player[], localPlayerId?: string) {
         const currentIds = new Set(data.map(p => p.id));
 
         for (const [id, view] of this.players.entries()) {
@@ -146,12 +148,13 @@ export class ArenaRenderer {
             if (view.arrow.rotation !== player.heading) view.arrow.rotation = player.heading;
             if (view.username.text !== player.username) view.username.text = player.username;
 
-            const appearanceKey = `${player.color}:${player.isLocal === true}`;
+            const isLocal = localPlayerId === undefined ? player.isLocal === true : player.id === localPlayerId;
+            const appearanceKey = `${player.color}:${isLocal}`;
             if (view.appearanceKey !== appearanceKey) {
                 view.body.clear()
-                    .circle(0, 0, PLAYER_RADIUS + (player.isLocal ? 5 : 3)).fill({
-                        color: player.isLocal ? 0x60a5fa : 0xffffff,
-                        alpha: player.isLocal ? 0.22 : 0.1,
+                    .circle(0, 0, PLAYER_RADIUS + (isLocal ? 5 : 3)).fill({
+                        color: isLocal ? 0x60a5fa : 0xffffff,
+                        alpha: isLocal ? 0.22 : 0.1,
                     })
                     .circle(0, 0, PLAYER_RADIUS).fill({ color: player.color }).stroke({ color: 0xf8fafc, width: 2 });
                 view.appearanceKey = appearanceKey;
@@ -175,5 +178,6 @@ export class ArenaRenderer {
         this.lastState = null;
         this.lastObstacles = null;
         this.lastChests = null;
+        this.lastLocalPlayerId = undefined;
     }
 }
