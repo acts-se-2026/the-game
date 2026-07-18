@@ -7,9 +7,10 @@ type ArenaCanvasProps = {
     stateRef: RefObject<ArenaState>;
     onAim?: (position: { x: number; y: number }) => void;
     onShoot?: () => void;
+    presentation?: "game" | "backdrop";
 };
 
-export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasProps) {
+export default function ArenaCanvas({ stateRef, onAim, onShoot, presentation = "game" }: ArenaCanvasProps) {
     const hostRef = useRef<HTMLDivElement>(null);
     const [pixi, setPixi] = useState<{
         app: Application;
@@ -31,7 +32,9 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
         const resize = () => {
             const { width, height } = wrapper.getBoundingClientRect();
             if (width <= 0 || height <= 0) return;
-            const scale = Math.min(width / ARENA_WIDTH, height / ARENA_HEIGHT);
+            const scale = presentation === "backdrop"
+                ? Math.max(width / ARENA_WIDTH, height / ARENA_HEIGHT)
+                : Math.min(width / ARENA_WIDTH, height / ARENA_HEIGHT);
             host.style.width = `${ARENA_WIDTH * scale}px`;
             host.style.height = `${ARENA_HEIGHT * scale}px`;
         };
@@ -40,7 +43,7 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
         const observer = new ResizeObserver(resize);
         observer.observe(wrapper);
         return () => observer.disconnect();
-    }, []);
+    }, [presentation]);
 
     useEffect(() => {
         onAimRef.current = onAim;
@@ -50,14 +53,21 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
     useEffect(() => {
         if (!pixi) return;
 
-        let frame: number;
-        const tick = () => {
+        if (presentation === "backdrop") {
             pixi.renderer.syncState(stateRef.current);
-            frame = requestAnimationFrame(tick);
+            pixi.app.render();
+            return;
+        }
+
+        const syncState = () => {
+            pixi.renderer.syncState(stateRef.current);
         };
-        frame = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(frame);
-    }, [stateRef, pixi]);
+        syncState();
+        pixi.app.ticker.add(syncState);
+        return () => {
+            pixi.app.ticker.remove(syncState);
+        };
+    }, [stateRef, pixi, presentation]);
 
     // This effect runs once when the component is first loaded
     useEffect(() => {
@@ -74,6 +84,7 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
                     height: ARENA_HEIGHT,
                     backgroundAlpha: 0,
                     antialias: true,
+                    autoStart: presentation === "game",
                 });
 
                 if (!isMounted || !hostRef.current) {
@@ -91,11 +102,12 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
                     renderer,
                 });
 
-                // Set up mouse/touch events
-                app.stage.eventMode = "static";
-                app.stage.hitArea = app.screen;
-                app.stage.on("pointermove", (event) => onAimRef.current?.(event.global));
-                app.stage.on("pointertap", () => onShootRef.current?.());
+                if (presentation === "game") {
+                    app.stage.eventMode = "static";
+                    app.stage.hitArea = app.screen;
+                    app.stage.on("pointermove", (event) => onAimRef.current?.(event.global));
+                    app.stage.on("pointertap", () => onShootRef.current?.());
+                }
 
                 // Add the canvas to our HTML div
                 hostRef.current.appendChild(app.canvas);
@@ -114,15 +126,21 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
             }
             setPixi(null);
         };
-    }, []);
+    }, [presentation]);
+
+    const isBackdrop = presentation === "backdrop";
 
     return (
-        <div ref={wrapperRef} className="flex h-full w-full items-center justify-center">
+        <div ref={wrapperRef} className="flex h-full w-full items-center justify-center overflow-hidden">
             <div
                 ref={hostRef}
-                className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/30 [&_canvas]:block [&_canvas]:size-full [&_canvas]:cursor-crosshair [&_canvas]:touch-none"
-                role="application"
-                aria-label="Game arena"
+                className={isBackdrop
+                    ? "pointer-events-none shrink-0 bg-slate-900 [&_canvas]:block [&_canvas]:size-full"
+                    : "overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/30 [&_canvas]:block [&_canvas]:size-full [&_canvas]:cursor-crosshair [&_canvas]:touch-none"
+                }
+                role={isBackdrop ? undefined : "application"}
+                aria-label={isBackdrop ? undefined : "Game arena"}
+                aria-hidden={isBackdrop || undefined}
             />
         </div>
     );

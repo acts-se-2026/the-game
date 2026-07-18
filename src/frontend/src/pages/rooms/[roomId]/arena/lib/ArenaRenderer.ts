@@ -4,20 +4,37 @@ import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle,
 const PLAYER_RADIUS = 18;
 const GRID_SIZE = 30;
 
+type PlayerView = {
+    container: Container;
+    body: Graphics;
+    arrow: Graphics;
+    username: Text;
+    appearanceKey: string;
+};
+
 export class ArenaRenderer {
-    private app: Application;
     private world: Container;
-    private players: Map<string, Container> = new Map();
-    private obstacles: Map<string, Graphics> = new Map();
-    private bullets: Map<string, Graphics> = new Map();
-    private chests: Map<string, Graphics> = new Map();
+    private players: Map<string, PlayerView> = new Map();
+    private obstacleLayer: Graphics;
+    private chestLayer: Graphics;
+    private bulletLayer: Graphics;
+    private lastState: ArenaState | null = null;
+    private lastObstacles: Obstacle[] | null = null;
+    private lastChests: Chest[] | null = null;
 
     constructor(app: Application) {
-        this.app = app;
         this.world = new Container();
         this.world.sortableChildren = true;
-        this.app.stage.addChild(this.world);
+        app.stage.addChild(this.world);
         this.initBackground();
+
+        this.obstacleLayer = new Graphics();
+        this.obstacleLayer.zIndex = 10;
+        this.chestLayer = new Graphics();
+        this.chestLayer.zIndex = 15;
+        this.bulletLayer = new Graphics();
+        this.bulletLayer.zIndex = 30;
+        this.world.addChild(this.obstacleLayer, this.chestLayer, this.bulletLayer);
     }
 
     private initBackground() {
@@ -35,95 +52,69 @@ export class ArenaRenderer {
     }
 
     public syncState(state: ArenaState) {
-        this.syncObstacles(state.obstacles);
+        if (state === this.lastState) return;
+
+        if (state.obstacles !== this.lastObstacles) {
+            this.syncObstacles(state.obstacles);
+            this.lastObstacles = state.obstacles;
+        }
         this.syncPlayers(state.players);
         this.syncBullets(state.bullets, state.players);
-        this.syncChests(state.chests)
+        if (state.chests !== this.lastChests && !this.sameChests(state.chests, this.lastChests)) {
+            this.syncChests(state.chests);
+        }
+        this.lastChests = state.chests;
+        this.lastState = state;
     }
 
     private syncBullets(bullets: Bullet[], players: Player[]) {
-        for (const graphics of this.bullets.values()) {
-            graphics.destroy(true);
+        const playerColors = new Map(players.map((player) => [player.id, player.color]));
+        this.bulletLayer.clear();
+
+        for (const bullet of bullets) {
+            this.bulletLayer
+                .circle(bullet.x, bullet.y, 5)
+                .fill({ color: playerColors.get(bullet.ownerId) ?? 0xff0000 });
         }
-        this.bullets.clear();
-
-
-        bullets.forEach((bullet, idx) => {
-            const key = String(idx);
-            const graphics = new Graphics();
-            graphics.zIndex = 30;
-            this.world.addChild(graphics);
-            this.bullets.set(key, graphics);
-
-            const owner = players.find(
-                player => player.id === bullet.ownerId
-            );
-            
-            graphics.clear()
-                .circle(bullet.x, bullet.y, 5).fill({
-                    color: owner ? Number(owner.color.replace("#", "0x")) : 0xff0000
-                });
-        });
     }
 
-    private syncChests(data : Chest[]) {
-        for (const graphics of this.chests.values()) {
-            graphics.destroy(true);
-        }
-        this.chests.clear();
-
-        data.forEach((chest, idx) => {
-            const key = String(idx);
-            const graphics = new Graphics();
-            this.world.addChild(graphics);
-            this.chests.set(key, graphics);
-
-            graphics.clear()
+    private syncChests(data: Chest[]) {
+        this.chestLayer.clear();
+        for (const chest of data) {
+            this.chestLayer
                 .rect(chest.x, chest.y, chest.size.x, chest.size.y)
-                .fill({ color: 0x19bf45 })
-        });
-
-
+                .fill({ color: 0x19bf45 });
+        }
     }
 
     private syncObstacles(data: Obstacle[]) {
-        for (const graphics of this.obstacles.values()) {
-            graphics.destroy(true);
-        }
-        this.obstacles.clear();
-
-        data.forEach((obstacle, idx) => {
-            const key = String(idx);
-            const graphics = new Graphics();
-            graphics.zIndex = 10;
-            this.world.addChild(graphics);
-            this.obstacles.set(key, graphics);
-
-            graphics.clear()
+        this.obstacleLayer.clear();
+        for (const obstacle of data) {
+            this.obstacleLayer
                 .rect(obstacle.x, obstacle.y, obstacle.size.x, obstacle.size.y).fill({ color: 0x334155 })
                 .rect(obstacle.x + 1.5, obstacle.y + 1.5, obstacle.size.x - 3, obstacle.size.y - 3).stroke({ color: 0x64748b, width: 3 })
                 .rect(obstacle.x + 5, obstacle.y + 5, obstacle.size.x - 10, 6).fill({ color: 0xffffff, alpha: 0.06 });
-        });
+        }
     }
 
     private syncPlayers(data: Player[]) {
         const currentIds = new Set(data.map(p => p.id));
-        
-        for (const [id, container] of this.players.entries()) {
+
+        for (const [id, view] of this.players.entries()) {
             if (!currentIds.has(id)) {
-                container.destroy(true);
+                view.container.destroy(true);
                 this.players.delete(id);
             }
         }
 
         for (const player of data) {
-            let container = this.players.get(player.id);
-            if (!container) {
-                container = new Container();
+            let view = this.players.get(player.id);
+            if (!view) {
+                const container = new Container();
                 container.zIndex = 20;
                 const body = new Graphics();
                 body.name = "body";
-                
+
                 const arrow = new Graphics();
                 arrow.name = "arrow";
                 const arrowLength = PLAYER_RADIUS + 16;
@@ -146,31 +137,43 @@ export class ArenaRenderer {
 
                 container.addChild(body, arrow, username);
                 this.world.addChild(container);
-                this.players.set(player.id, container);
+                view = { container, body, arrow, username, appearanceKey: "" };
+                this.players.set(player.id, view);
             }
-            
-            container.x = player.x;
-            container.y = player.y;
 
-            const body = container.getChildByName("body") as Graphics;
-            body.clear()
-                .circle(0, 0, PLAYER_RADIUS + (player.isLocal ? 5 : 3)).fill({
-                    color: player.isLocal ? 0x60a5fa : 0xffffff,
-                    alpha: player.isLocal ? 0.22 : 0.1,
-                })
-                .circle(0, 0, PLAYER_RADIUS).fill({ color: player.color }).stroke({ color: 0xf8fafc, width: 2 });
+            if (view.container.x !== player.x) view.container.x = player.x;
+            if (view.container.y !== player.y) view.container.y = player.y;
+            if (view.arrow.rotation !== player.heading) view.arrow.rotation = player.heading;
+            if (view.username.text !== player.username) view.username.text = player.username;
 
-
-            const username = container.getChildByName("username") as Text;
-            username.text = player.username;
-
-            const arrow = container.getChildByName("arrow") as Graphics;
-            arrow.rotation = player.heading;
+            const appearanceKey = `${player.color}:${player.isLocal === true}`;
+            if (view.appearanceKey !== appearanceKey) {
+                view.body.clear()
+                    .circle(0, 0, PLAYER_RADIUS + (player.isLocal ? 5 : 3)).fill({
+                        color: player.isLocal ? 0x60a5fa : 0xffffff,
+                        alpha: player.isLocal ? 0.22 : 0.1,
+                    })
+                    .circle(0, 0, PLAYER_RADIUS).fill({ color: player.color }).stroke({ color: 0xf8fafc, width: 2 });
+                view.appearanceKey = appearanceKey;
+            }
         }
+    }
+
+    private sameChests(chests: Chest[], previous: Chest[] | null): boolean {
+        if (!previous || chests.length !== previous.length) return false;
+        return chests.every((chest, index) => {
+            const oldChest = previous[index];
+            return chest.x === oldChest.x
+                && chest.y === oldChest.y
+                && chest.size.x === oldChest.size.x
+                && chest.size.y === oldChest.size.y;
+        });
     }
 
     public destroy() {
         this.players.clear();
-        this.obstacles.clear();
+        this.lastState = null;
+        this.lastObstacles = null;
+        this.lastChests = null;
     }
 }
