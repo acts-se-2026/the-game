@@ -1,186 +1,152 @@
-import { Application, Container, Graphics, Text } from "pixi.js";
-import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player, type Chest } from "../../../../../game/types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { type ArenaState, ARENA_WIDTH, ARENA_HEIGHT } from "./types";
+import { useKeyboardMovement } from "./useKeyboardMovement";
+import { useWsConnection } from "../context/WsContext/useWsConnection";
+import { useUser } from "../context/UserContext/useUser";
+import type { GameStartPacket, WsUnknownPacket } from "../context/WsContext/types";
+import { useLocation } from "react-router";
+import { processNewState } from "./processNewState";
+import { determineMatchResult, findKillerName, type MatchResult } from "./matchResult";
+import { playSfx, preloadSfx } from "./sfx";
+import { didLocalPlayerTakeDamage, getResultSfx } from "./sfxTriggers";
 
-const PLAYER_RADIUS = 18;
-const GRID_SIZE = 30;
+const EMPTY_ARENA: ArenaState = {
+    obstacles: [],
+    players: [],
+    bullets: [],
+    chests: [],
+    explosion_positions: []
+};
 
-export class ArenaRenderer {
-    private app: Application;
-    private world: Container;
-    private players: Map<string, Container> = new Map();
-    private obstacles: Map<string, Graphics> = new Map();
-    private bullets: Map<string, Graphics> = new Map();
-    private chests: Map<string, Graphics> = new Map();
+export function useGameState() {
+    const location = useLocation();
+    const { socket, sendMessage } = useWsConnection();
+    const { user } = useUser();
+    const arena = useRef<ArenaState>(
+        location.state?.arenaState
+            ? processNewState(location.state.arenaState, EMPTY_ARENA, user?.session_id)
+            : EMPTY_ARENA
+    );
+    const [matchResult, setMatchResult] = useState<MatchResult>(null);
+    const [killedBy, setKilledBy] = useState<string | null>(null);
+    const [health, setHealth] = useState(100);
+    const movement = useKeyboardMovement();
 
-    constructor(app: Application) {
-        this.app = app;
-        this.world = new Container();
-        this.world.sortableChildren = true;
-        this.app.stage.addChild(this.world);
-        this.initBackground();
-    }
+    const lastAimSentAt = useRef(0);
+    const lastAimPos = useRef<{ x: number; y: number } | null>(null);
+    const lastSentHeading = useRef<number | null>(null);
 
-    private initBackground() {
-        const grid = new Graphics();
-        grid.zIndex = 0;
-        grid.rect(0, 0, ARENA_WIDTH, ARENA_HEIGHT).fill({ color: 0x122032 });
-        for (let x = 0; x <= ARENA_WIDTH; x += GRID_SIZE) {
-            grid.moveTo(x, 0).lineTo(x, ARENA_HEIGHT);
-        }
-        for (let y = 0; y <= ARENA_HEIGHT; y += GRID_SIZE) {
-            grid.moveTo(0, y).lineTo(ARENA_WIDTH, y);
-        }
-        grid.stroke({ color: 0x94a3b8, alpha: 0.12, width: 1 });
-        this.world.addChild(grid);
-    }
+    useEffect(() => {
+        preloadSfx();
+    }, []);
 
-    public syncState(state: ArenaState) {
-        this.syncObstacles(state.obstacles);
-        this.syncPlayers(state.players);
-        this.syncBullets(state.bullets, state.players);
-        this.syncChests(state.chests)
-    }
+    useEffect(() => {
+        const currentSocket = socket.current;
+        if (!currentSocket) return;
 
-    private syncBullets(bullets: Bullet[], players: Player[]) {
-        for (const graphics of this.bullets.values()) {
-            graphics.destroy(true);
-        }
-        this.bullets.clear();
+        const handleIncomingPacket = (event: MessageEvent) => {
+            const packet = JSON.parse(event.data) as WsUnknownPacket;
 
+            switch (packet.type) {
+                case "state_diff": {
+                    const arenaState = packet.data as GameStartPacket["data"];
+                    const previousPlayers = arena.current.players;
+                    arena.current = processNewState(arenaState, arena.current, user?.session_id);
+                  
+                    const localPlayerTookDamage = didLocalPlayerTakeDamage(
+                        previousPlayers,
+                        arenaState.players,
+                        user?.session_id
+                    );
 
-        bullets.forEach((bullet, idx) => {
-            const key = String(idx);
-            const graphics = new Graphics();
-            graphics.zIndex = 30;
-            this.world.addChild(graphics);
-            this.bullets.set(key, graphics);
+                    if (localPlayerTookDamage) {
+                        playSfx("bullethit");
+                    }
 
-            const owner = players.find(
-                player => player.id === bullet.ownerId
-            );
-            console.log(bullet.damage)
-            graphics.clear()
-                .circle(bullet.x, bullet.y, Math.floor(bullet.damage / 2)).fill({
-                    color: owner ? Number(owner.color.replace("#", "0x")) : 0xff0000
-                });
-        });
-    }
+                    setKilledBy((currentKiller) =>
+                        currentKiller ?? findKillerName(arenaState.deaths ?? [], previousPlayers, user?.session_id)
+                    );
+                    setMatchResult((currentResult) =>
+                        currentResult ?? determineMatchResult(arena.current.players, user?.session_id)
+                    );
 
-    private syncChests(data : Chest[]) {
-        for (const graphics of this.chests.values()) {
-            graphics.destroy(true);
-        }
-        this.chests.clear();
-
-        data.forEach((chest, idx) => {
-            const key = String(idx);
-            const graphics = new Graphics();
-            this.world.addChild(graphics);
-            this.chests.set(key, graphics);
-            
-            let ChestColor = 0x3fed13; // default
-
-            if (chest.effect === "health") {
-                ChestColor = 0x3fed13;
-            } else if (chest.effect === "speed") {
-                ChestColor = 0xede213;
-            } else if (chest.effect === "strength") {
-                ChestColor = 0xeb220c;
+                    const newHealth = arena.current.players.find(p => p.id === user?.session_id)?.hp ?? 100;
+                    setHealth(newHealth);
+                    break;
+                }
+                default:
+                    console.warn("Unknown packet type:", packet.type);
             }
+        };
 
-            graphics.clear()
-                .rect(chest.x, chest.y, chest.size.x, chest.size.y)
-                .fill({ color: ChestColor })
-        });
-
-
-    }
-
-    private syncObstacles(data: Obstacle[]) {
-        for (const graphics of this.obstacles.values()) {
-            graphics.destroy(true);
-        }
-        this.obstacles.clear();
-
-        data.forEach((obstacle, idx) => {
-            const key = String(idx);
-            const graphics = new Graphics();
-            graphics.zIndex = 10;
-            this.world.addChild(graphics);
-            this.obstacles.set(key, graphics);
-
-            graphics.clear()
-                .rect(obstacle.x, obstacle.y, obstacle.size.x, obstacle.size.y).fill({ color: 0x334155 })
-                .rect(obstacle.x + 1.5, obstacle.y + 1.5, obstacle.size.x - 3, obstacle.size.y - 3).stroke({ color: 0x64748b, width: 3 })
-                .rect(obstacle.x + 5, obstacle.y + 5, obstacle.size.x - 10, 6).fill({ color: 0xffffff, alpha: 0.06 });
-        });
-    }
-
-    private syncPlayers(data: Player[]) {
-        const currentIds = new Set(data.map(p => p.id));
-        
-        for (const [id, container] of this.players.entries()) {
-            if (!currentIds.has(id)) {
-                container.destroy(true);
-                this.players.delete(id);
-            }
+        const handleSocketClose = () => {
+            console.log("WebSocket Disconnected");
         }
 
-        for (const player of data) {
-            let container = this.players.get(player.id);
-            if (!container) {
-                container = new Container();
-                container.zIndex = 20;
-                const body = new Graphics();
-                body.name = "body";
-                
-                const arrow = new Graphics();
-                arrow.name = "arrow";
-                const arrowLength = PLAYER_RADIUS + 16;
-                arrow.moveTo(0, 0).lineTo(arrowLength, 0).stroke({ color: 0x0f172a, width: 5, cap: "round" })
-                     .moveTo(arrowLength, 0).lineTo(arrowLength - 10, -7).lineTo(arrowLength - 10, 7).closePath().fill({ color: 0x0f172a });
+        // We add a listener
+        currentSocket.addEventListener("message", handleIncomingPacket);
+        currentSocket.addEventListener("close", handleSocketClose);
 
-                const username = new Text({
-                    text: player.username,
-                    style: {
-                        fill: 0xf8fafc,
-                        fontFamily: "Arial, sans-serif",
-                        fontSize: 13,
-                        fontWeight: "bold",
-                        stroke: { color: 0x0f172a, width: 3 },
-                    },
-                });
-                username.name = "username";
-                username.anchor.set(0.5, 1);
-                username.y = -(PLAYER_RADIUS + 8);
+        // Cleanup when the component unmounts or when the socket changes
+        return () => {
+            currentSocket.removeEventListener("message", handleIncomingPacket);
+            currentSocket.removeEventListener("close", handleSocketClose);
+        };
+    }, [socket, user?.session_id]);
 
-                container.addChild(body, arrow, username);
-                this.world.addChild(container);
-                this.players.set(player.id, container);
-            }
-            
-            container.x = player.x;
-            container.y = player.y;
+    useEffect(() => {
+        sendMessage("player_move", { x: movement.x, y: movement.y });
+    }, [movement, sendMessage]);
 
-            const body = container.getChildByName("body") as Graphics;
-            body.clear()
-                .circle(0, 0, PLAYER_RADIUS + (player.isLocal ? 5 : 3)).fill({
-                    color: player.isLocal ? 0x60a5fa : 0xffffff,
-                    alpha: player.isLocal ? 0.22 : 0.1,
-                })
-                .circle(0, 0, PLAYER_RADIUS).fill({ color: player.color }).stroke({ color: 0xf8fafc, width: 2 });
-
-
-            const username = container.getChildByName("username") as Text;
-            username.text = player.username;
-
-            const arrow = container.getChildByName("arrow") as Graphics;
-            arrow.rotation = player.heading;
+    useEffect(() => {
+        const resultSfx = getResultSfx(matchResult);
+        if (!resultSfx) {
+            return;
         }
-    }
 
-    public destroy() {
-        this.players.clear();
-        this.obstacles.clear();
-    }
+        playSfx(resultSfx);
+    }, [matchResult]);
+
+    const sendAim = useCallback(() => {
+        const pos = lastAimPos.current;
+        const localPlayer = arena.current.players.find(p => p.isLocal);
+        const playerPos = localPlayer ? { x: localPlayer.x, y: localPlayer.y } : null;
+        if (!pos || !playerPos) return;
+
+        // Always aim towards the mouse cursor
+        const heading = Math.atan2(pos.y - ARENA_HEIGHT / 2, pos.x - ARENA_WIDTH / 2);
+
+        // Don't send if the aim direction did not change
+        if (lastSentHeading.current === heading) return;
+
+        const now = Date.now();
+        if (now - lastAimSentAt.current < 50) return;
+
+        sendMessage("player_aim", { heading });
+        lastSentHeading.current = heading;
+        lastAimSentAt.current = now;
+    }, [sendMessage]);
+
+    const handleAim = useCallback((pos: { x: number; y: number }) => {
+        lastAimPos.current = { x: pos.x, y: pos.y };
+        sendAim();
+    }, [sendAim]);
+
+    // Continuously re-evaluate the aim so the player always faces the mouse
+    useEffect(() => {
+        let frame: number;
+        const tick = () => {
+            sendAim();
+            frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(frame);
+    }, [sendAim]);
+
+    const handleShoot = useCallback(() => {
+        playSfx("gunshot");
+        sendMessage("player_shoot");
+    }, [sendMessage]);
+
+    return { arena, health, matchResult, killedBy, handleAim, handleShoot };
 }
