@@ -23,7 +23,7 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
     const onAimRef = useRef(onAim);
     const onShootRef = useRef(onShoot);
 
-    const { user, isLoading } = useUser();
+    const user = useUser().user;
 
     // Resize the Pixi canvas to fit the wrapper while maintaining aspect ratio
     useEffect(() => {
