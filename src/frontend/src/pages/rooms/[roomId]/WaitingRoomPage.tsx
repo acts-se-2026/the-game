@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from "react-router";
 import PageTitleTemplate from "../../../components/PageTitleTemplate";
 import PlayerList, { type RoomPlayer } from "./components/PlayerList";
-import { useUser } from "../../../context/UserContext";
+import { useUser } from "../../../context/UserContext/useUser";
 import { useEffect, useRef, useState } from "react";
-import { useWsConnection } from "../../../context/WsContext";
+import { useWsConnection } from "../../../context/WsContext/useWsConnection";
 import type { GameStartPacket, PlayerListUpdatePacket, WsUnknownPacket } from "../../../context/WsContext/types";
 
 const baseWsPath = import.meta.env.VITE_WS_PATH || "/api/ws";
@@ -31,7 +31,7 @@ export default function WaitingRoomPage() {
                 disconnectWs();
             }
         };
-    }, [roomId, user, navigate]);
+    }, [roomId, user, navigate, connectWs, disconnectWs]);
 
     useEffect(() => {
         const currentSocket = socket.current;
@@ -41,15 +41,17 @@ export default function WaitingRoomPage() {
             const packet = JSON.parse(event.data) as WsUnknownPacket;
 
             switch (packet.type) {
-                case "user_list":
+                case "user_list": {
                     const userListPacket = packet as PlayerListUpdatePacket;
                     setPlayers(userListPacket.data.players);
                     break;
-                case "game_start":
+                }
+                case "game_start": {
                     const gameStartPacket = packet as GameStartPacket;
                     goToArenaRef.current = true;
                     navigate(`/rooms/${roomId}/arena`, { state: { arenaState: gameStartPacket.data } });
                     break;
+                }
                 default:
                     console.warn("Unknown packet type:", packet.type);
             }
@@ -72,7 +74,7 @@ export default function WaitingRoomPage() {
             currentSocket.removeEventListener("message", handleIncomingPacket);
             currentSocket.removeEventListener("close", handleSocketClose);
         };
-    }, [socket, navigate]);
+    }, [socket, navigate, roomId]);
 
     const handleStartMatch = () => {
         sendMessage("game_start");

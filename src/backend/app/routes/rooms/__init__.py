@@ -1,1 +1,1 @@
-from .router import roomsRouter
+from .router import roomsRouter as roomsRouter
