@@ -1,4 +1,4 @@
-import { Application, Container, getGlobalRenderableBounds, Graphics, Text } from "pixi.js";
+import { Application, Container, Graphics, Text } from "pixi.js";
 import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player, type Chest } from "../../../../../game/types";
 
 const PLAYER_RADIUS = 18;
