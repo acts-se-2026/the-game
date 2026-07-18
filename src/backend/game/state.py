@@ -87,6 +87,7 @@ class Bullet:
             "x": self.pos.x,
             "y": self.pos.y,
             "heading": math.atan2(self.movement_dir.y, self.movement_dir.x),
+            "ownerId": self.owner_uuid
         }
 
 

@@ -34,6 +34,7 @@ function buildArenaState(data: GameStartPacket["data"] | undefined, localId: str
             x: bullet.x,
             y: bullet.y,
             heading: bullet.heading,
+            ownerId : bullet.ownerId
         })),
     };
 }
