@@ -32,7 +32,7 @@ CHEST_HEALTH = 20
 CHEST_SPEED = PLAYER_SPEED * 2
 CHEST_STRENGTH = PLAYER_DAMAGE * 3
 
-EFFECT_LENGTH = 200
+EFFECT_LENGTH = 400
 
 
 class Chest:
@@ -359,8 +359,8 @@ class State:
     # Called from outside
     def step_frame(self):
         self.current_frame += 1
+
         for player in self.players:
-            print(player.effects)
             delta = (player.speed * player.movement_dir).rounded()
 
             assert player.pos.is_int(), "Collision detection only works with integer coordinates"
@@ -438,7 +438,7 @@ class State:
 
         self.players = alive_players
 
-        if self.current_frame == self.next_chest_spawn:
+        if self.current_frame == self.next_chest_spawn and len(self.chests) <= 4:
             self.add_chest_at_random_position()
             self.next_chest_spawn += CHEST_SPAWN_DELAY
         
