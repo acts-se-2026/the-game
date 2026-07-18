@@ -1,1 +1,1 @@
-from .router import wsRouter
+from .router import wsRouter as wsRouter
