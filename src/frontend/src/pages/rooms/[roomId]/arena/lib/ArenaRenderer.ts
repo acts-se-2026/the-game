@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import { Application, Container, Graphics } from "pixi.js";
-import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player, type Chest } from "../../../../../game/types";
-=======
 import { Application, Container, Graphics, Text } from "pixi.js";
-import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player } from "../../../../../game/types";
->>>>>>> origin/main
+import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player, type Chest } from "../../../../../game/types";
 
 const PLAYER_RADIUS = 18;
 const GRID_SIZE = 30;
