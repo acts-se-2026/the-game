@@ -156,10 +156,10 @@ class Bullet:
 
 
 class StateDiff:
-    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[Vec2], allChests : list[Chest], deaths: list[dict]):
+    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[dict], allChests : list[Chest], deaths: list[dict]):
         self.allBullets = allBullets # list of Bullet
         self.players = players # list of Player
-        self.explosion_positions = explosion_positions # list of Vec2
+        self.explosion_positions = explosion_positions # list of dicts
         self.allChests = allChests
         self.deaths = deaths
 
@@ -167,7 +167,7 @@ class StateDiff:
         return {
             "players": [player.to_dict() for player in self.players],
             "bullets": [bullet.to_dict() for bullet in self.allBullets],
-            "explosion_positions": [pos.to_dict() for pos in self.explosion_positions],
+            "explosion_positions": self.explosion_positions,
             "chests": [chest.to_dict() for chest in self.allChests],
             "deaths": self.deaths
         }
@@ -429,7 +429,11 @@ class State:
         alive_players = []
         for player in self.players: 
             if player.hp <= 0:
-                explosion_positions.append(player.pos)
+                explosion_positions.append({
+                    "x": player.pos.x,
+                    "y": player.pos.y,
+                    "player_id": player.uuid
+                })
                 deaths.append({
                     "player_id": player.uuid,
                     "killer_id": killers_by_player.get(player.uuid),

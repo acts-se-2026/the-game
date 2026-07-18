@@ -21,7 +21,15 @@ export default function LobbyPage() {
 
     useEffect(() => {
         backendApi.get<FetchRoomsResponse>("/api/rooms").then((response) => {
-            setRooms(Array.isArray(response.data.rooms) ? response.data.rooms : []);
+            if (!Array.isArray(response.data.rooms)) {
+                setRooms([]);
+                return;
+            }
+
+            setRooms(response.data.rooms.map((room) => ({
+                ...room,
+                players: Array.isArray(room.players) ? room.players : [],
+            })));
         }).catch((error) => {
             console.error("Failed to fetch rooms:", error);
         });

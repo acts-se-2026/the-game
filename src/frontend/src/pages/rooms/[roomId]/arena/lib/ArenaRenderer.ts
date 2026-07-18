@@ -18,6 +18,7 @@ const EMPTY_ARENA: ArenaState = {
     explosion_positions: []
 };
 
+<<<<<<< HEAD
 export function useGameState() {
     const location = useLocation();
     const { socket, sendMessage } = useWsConnection();
@@ -31,11 +32,31 @@ export function useGameState() {
     const [killedBy, setKilledBy] = useState<string | null>(null);
     const [health, setHealth] = useState(100);
     const movement = useKeyboardMovement();
+=======
+interface Particle {
+    graphics: Graphics;
+    vx: number;
+    vy: number;
+    life: number;
+    maxLife: number;
+}
+
+export class ArenaRenderer {
+    private app: Application;
+    private world: Container;
+    private players: Map<string, Container> = new Map();
+    private obstacles: Map<string, Graphics> = new Map();
+    private bullets: Map<string, Graphics> = new Map();
+    private chests: Map<string, Graphics> = new Map();
+    private particles: Particle[] = [];
+    private lastState: ArenaState | null = null;
+>>>>>>> 37e430d29116eeca0b742ee104e24e8fc3eea926
 
     const lastAimSentAt = useRef(0);
     const lastAimPos = useRef<{ x: number; y: number } | null>(null);
     const lastSentHeading = useRef<number | null>(null);
 
+<<<<<<< HEAD
     useEffect(() => {
         preloadSfx();
     }, []);
@@ -43,6 +64,99 @@ export function useGameState() {
     useEffect(() => {
         const currentSocket = socket.current;
         if (!currentSocket) return;
+=======
+
+    private initBackground() {
+        const grid = new Graphics();
+        grid.zIndex = 0;
+        grid.rect(0, 0, ARENA_WIDTH, ARENA_HEIGHT).fill({ color: 0x122032 });
+        for (let x = 0; x <= ARENA_WIDTH; x += GRID_SIZE) {
+            grid.moveTo(x, 0).lineTo(x, ARENA_HEIGHT);
+        }
+        for (let y = 0; y <= ARENA_HEIGHT; y += GRID_SIZE) {
+            grid.moveTo(0, y).lineTo(ARENA_WIDTH, y);
+        }
+        grid.stroke({ color: 0x94a3b8, alpha: 0.12, width: 1 });
+        this.world.addChild(grid);
+    }
+
+    public syncState(state: ArenaState, self_id?: string) {
+        if (state !== this.lastState) {
+            this.syncObstacles(state.obstacles);
+            this.syncPlayers(state.players);
+            this.syncBullets(state.bullets, state.players);
+            this.syncChests(state.chests);
+            if (self_id) {
+                this.syncCamera(state.players, self_id);
+            }
+
+            if (state.explosion_positions && state.explosion_positions.length > 0) {
+                state.explosion_positions.forEach(pos => this.spawnExplosion(pos.x, pos.y, pos.color));
+            }
+            this.lastState = state;
+        }
+        this.updateParticles(this.app.ticker.deltaTime);
+    }
+
+    private spawnExplosion(x: number, y: number, colorStr: string) {
+        const particleCount = 20;
+        const color = Number(colorStr.replace("#", "0x"));
+        for (let i = 0; i < particleCount; i++) {
+            const graphics = new Graphics();
+            graphics.zIndex = 40;
+            
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2 + Math.random() * 4;
+            
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+            
+            const life = 30 + Math.random() * 30;
+            
+            graphics.circle(0, 0, 3 + Math.random() * 3)
+                .fill({ color, alpha: 0.8 });
+            
+            graphics.x = x;
+            graphics.y = y;
+            
+            this.world.addChild(graphics);
+            this.particles.push({
+                graphics,
+                vx,
+                vy,
+                life,
+                maxLife: life
+            });
+        }
+    }
+
+    private updateParticles(dt: number) {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.life -= dt;
+            
+            if (p.life <= 0) {
+                p.graphics.destroy(true);
+                this.particles.splice(i, 1);
+                continue;
+            }
+            
+            p.graphics.x += p.vx * dt;
+            p.graphics.y += p.vy * dt;
+            p.graphics.alpha = p.life / p.maxLife;
+            p.graphics.scale.set(p.life / p.maxLife);
+        }
+    }
+
+    private syncCamera(players: Player[], self_id: string) {
+        const self_player = players.find(p => p.id === self_id)
+        if (!self_player) {
+            return;
+        }
+        this.world.x = -self_player.x + this.app.screen.width / 2
+        this.world.y = -self_player.y + this.app.screen.height / 2
+    }
+>>>>>>> 37e430d29116eeca0b742ee104e24e8fc3eea926
 
         const handleIncomingPacket = (event: MessageEvent) => {
             const packet = JSON.parse(event.data) as WsUnknownPacket;
@@ -104,6 +218,7 @@ export function useGameState() {
             return;
         }
 
+<<<<<<< HEAD
         playSfx(resultSfx);
     }, [matchResult]);
 
@@ -150,3 +265,12 @@ export function useGameState() {
 
     return { arena, health, matchResult, killedBy, handleAim, handleShoot };
 }
+=======
+    public destroy() {
+        this.players.clear();
+        this.obstacles.clear();
+        this.particles.forEach(p => p.graphics.destroy(true));
+        this.particles = [];
+    }
+}
+>>>>>>> 37e430d29116eeca0b742ee104e24e8fc3eea926
