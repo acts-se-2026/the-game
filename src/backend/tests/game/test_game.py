@@ -3,7 +3,7 @@ import asyncio
 from app.auth.types import SessionPayload
 from game.backendConnections.room import Room
 from game.state import Player, Box, State
-from game.state import PLAYER_SIZE, PLAYER_SPEED, SHOOTING_DELAY, BULLET_SPEED, BULLET_SIZE
+from game.state import PLAYER_SIZE, PLAYER_SPEED, SHOOTING_DELAY, BULLET_SPEED, BULLET_SIZE, CANNON_END_RADIUS
 from game.vector import Vec2
 import math
 
@@ -114,7 +114,7 @@ def test_bullet_hits_player():
     state = State()
 
     shooter = state.add_player(Player('a', Vec2(100, 100)))
-    target = state.add_player(Player('b', Vec2(100 + BULLET_SPEED, 100)))
+    target = state.add_player(Player('b', Vec2(100 + BULLET_SPEED + CANNON_END_RADIUS, 100)))
 
     shooter.rotation = 0
 

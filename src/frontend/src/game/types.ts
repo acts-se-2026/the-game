@@ -1,4 +1,5 @@
-export const ARENA_SIZE = 600
+export const ARENA_WIDTH = 1280
+export const ARENA_HEIGHT = 720
 
 export type Obstacle = {
   x: number

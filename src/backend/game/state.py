@@ -5,14 +5,16 @@ import random
 # rotations:  0 is right, value is in clockwise radians
 # positions:  (0, 0) is top-left, value in pixels
 
-LEVEL_SIZE = Vec2(600, 600)
-GRID_SIZE = Vec2(5, 5)
+LEVEL_SIZE = Vec2(1280, 720)
+GRID_SIZE = Vec2(16, 9)
 GRID_BOX_SIZE = Vec2(LEVEL_SIZE.x/GRID_SIZE.x, LEVEL_SIZE.y/GRID_SIZE.y)
 
-OBSACLE_CNT=10 
+OBSTACLE_CNT_MIN = 20
+OBSTACLE_CNT_MAX = 45
 
 PLAYER_SIZE = Vec2(36, 36)
-PLAYER_SPEED = 10
+CANNON_END_RADIUS = 36//2 + 16
+PLAYER_SPEED = 5
 SHOOTING_DELAY = 5
 
 BULLET_SPEED = 10
@@ -125,28 +127,42 @@ class State:
 
     # Generates obstacles in a box grid
     def obstacle_generator():
-
         #--CREATES A MAP WITH RANDOM OBSTACLE POSITIONS--#    
-        #   
-        obstacles = [] # list of Box class
-        obstacles_grid_pos = set() #position of each obsticle in grid: (0, 0) is top left (9, 9) would be bottom right
+        while True:
+            obstacles = [] # list of Box class
+            obstacles_grid_pos = set() #position of each obsticle in grid: (0, 0) is top left (9, 9) would be bottom right
 
-        for i in range(OBSACLE_CNT):
-            x = random.randint(0, GRID_SIZE.x-1)
-            y = random.randint(0, GRID_SIZE.y-1)
-
-            while (x, y) in obstacles_grid_pos:
+            obstacle_cnt = random.randint(OBSTACLE_CNT_MIN, OBSTACLE_CNT_MAX)
+            for i in range(obstacle_cnt):
                 x = random.randint(0, GRID_SIZE.x-1)
                 y = random.randint(0, GRID_SIZE.y-1)
-            
-            obstacles_grid_pos.add((x, y))
-            obstacles.append(Box(Vec2(x*GRID_BOX_SIZE.x, y*GRID_BOX_SIZE.y), GRID_BOX_SIZE))
 
-        #--CHECKS IF AN AREA IS BLOCKED BY OBSTACLES--#
-        if not State.check_map_validity(obstacles_grid_pos):
-            return State.obstacle_generator()
+                while (x, y) in obstacles_grid_pos or State.is_diagonal(x, y, obstacles_grid_pos):
+                    x = random.randint(0, GRID_SIZE.x-1)
+                    y = random.randint(0, GRID_SIZE.y-1)
+                
+                obstacles_grid_pos.add((x, y))
+                obstacles.append(Box(Vec2(x*GRID_BOX_SIZE.x, y*GRID_BOX_SIZE.y), GRID_BOX_SIZE))
+
+            #--CHECKS IF AN AREA IS BLOCKED BY OBSTACLES--#
+            if State.check_map_validity(obstacles_grid_pos):
+                return obstacles
+
+    def is_diagonal(x, y, obstacles_grid_pos):
+        #This checks if (x, y) obstacle is connected ONLY diagonally with another obstacle
+        diagonals = [
+            (1, 1), #bottom right
+            (-1, 1), #bottom left
+            (-1, -1), #top left
+            (1, -1) #top right
+        ]
+
+        for dx, dy in diagonals:
+            if (x+dx, y+dy) in obstacles_grid_pos:
+                if (x+dx, y) not in obstacles_grid_pos and (x, y+dy) not in obstacles_grid_pos:
+                    return True
         
-        return obstacles
+        return False
 
 
     
@@ -156,8 +172,8 @@ class State:
         queue = []
 
         found = False
-        for y in range(GRID_SIZE.y-1):
-            for x in range(GRID_SIZE.x-1):
+        for y in range(GRID_SIZE.y):
+            for x in range(GRID_SIZE.x):
                 if (x, y) not in obstacles_grid_pos:
                     start = (x, y)
                     found=True
@@ -247,7 +263,8 @@ class State:
         print(f"Player {player_uuid} is trying to shoot a bullet at frame {self.current_frame}")
         for player in self.players:
             if player.uuid == player_uuid and self.current_frame - player.last_shot_time > SHOOTING_DELAY:
-                self.bullets.append(Bullet(player.pos, player.get_shooting_dir(), player.uuid))
+                direction = player.get_shooting_dir()
+                self.bullets.append(Bullet(player.pos + direction * CANNON_END_RADIUS, direction, player.uuid))
                 self.unsent_bullet_ids.append(self.bullets[-1].id)
                 player.last_shot_time = self.current_frame
 
@@ -358,4 +375,4 @@ class State:
 
     def end_game(self):
         pass
-        
+
