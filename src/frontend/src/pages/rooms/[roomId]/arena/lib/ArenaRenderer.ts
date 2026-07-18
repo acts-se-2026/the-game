@@ -139,9 +139,10 @@ export class ArenaRenderer {
             const owner = players.find(
                 player => player.id === bullet.ownerId
             );
-            
+            const radius = Math.floor(Math.sqrt(bullet.damage * 3)+1)
+
             graphics.clear()
-                .circle(bullet.x, bullet.y, 5).fill({
+                .circle(bullet.x, bullet.y, radius).fill({
                     color: owner ? Number(owner.color.replace("#", "0x")) : 0xff0000
                 });
         });
