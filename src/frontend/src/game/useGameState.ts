@@ -48,7 +48,11 @@ function buildArenaState(data: GameStartPacket["data"] | undefined, localId: str
                 y: chest.size.y
             }
         })),
-
+        explosion_positions: (data.explosion_positions ?? []).map((pos) => ({
+            x: pos.x,
+            y: pos.y,
+            color: "#ffffff" // Default color for initial explosions
+        }))
     };
 }
 
@@ -57,7 +61,7 @@ export function useGameState() {
     const { socket, sendMessage } = useWsConnection();
     const { user } = useUser();
     const arena = useRef<ArenaState>(
-        buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [], chests: []}
+        buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [], chests: [], explosion_positions: []}
     );
     const [matchResult, setMatchResult] = useState<MatchResult>(null);
     const [killedBy, setKilledBy] = useState<string | null>(null);

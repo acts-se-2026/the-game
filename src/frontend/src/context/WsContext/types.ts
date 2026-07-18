@@ -48,6 +48,7 @@ export interface GameStartPacket {
                 y: number;
             };
         }[];
+        explosion_positions?: { x: number; y: number; player_id: string }[];
         deaths?: DeathRecord[];
     }
 }

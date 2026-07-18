@@ -1,8 +1,16 @@
-import { Application, Container, Graphics, Text } from "pixi.js";
+import { Application, Container, Graphics, Text, Ticker } from "pixi.js";
 import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player, type Chest } from "../../../../../game/types";
 
 const PLAYER_RADIUS = 18;
 const GRID_SIZE = 30;
+
+interface Particle {
+    graphics: Graphics;
+    vx: number;
+    vy: number;
+    life: number;
+    maxLife: number;
+}
 
 export class ArenaRenderer {
     private app: Application;
@@ -11,6 +19,8 @@ export class ArenaRenderer {
     private obstacles: Map<string, Graphics> = new Map();
     private bullets: Map<string, Graphics> = new Map();
     private chests: Map<string, Graphics> = new Map();
+    private particles: Particle[] = [];
+    private lastState: ArenaState | null = null;
 
     constructor(app: Application) {
         this.app = app;
@@ -19,6 +29,7 @@ export class ArenaRenderer {
         this.app.stage.addChild(this.world);
         this.initBackground();
     }
+
 
     private initBackground() {
         const grid = new Graphics();
@@ -35,10 +46,68 @@ export class ArenaRenderer {
     }
 
     public syncState(state: ArenaState) {
-        this.syncObstacles(state.obstacles);
-        this.syncPlayers(state.players);
-        this.syncBullets(state.bullets, state.players);
-        this.syncChests(state.chests)
+        if (state !== this.lastState) {
+            this.syncObstacles(state.obstacles);
+            this.syncPlayers(state.players);
+            this.syncBullets(state.bullets, state.players);
+            this.syncChests(state.chests);
+
+            if (state.explosion_positions && state.explosion_positions.length > 0) {
+                state.explosion_positions.forEach(pos => this.spawnExplosion(pos.x, pos.y, pos.color));
+            }
+            this.lastState = state;
+        }
+        this.updateParticles(this.app.ticker.deltaTime);
+    }
+
+    private spawnExplosion(x: number, y: number, colorStr: string) {
+        const particleCount = 20;
+        const color = Number(colorStr.replace("#", "0x"));
+        for (let i = 0; i < particleCount; i++) {
+            const graphics = new Graphics();
+            graphics.zIndex = 40;
+            
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2 + Math.random() * 4;
+            
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+            
+            const life = 30 + Math.random() * 30;
+            
+            graphics.circle(0, 0, 3 + Math.random() * 3)
+                .fill({ color, alpha: 0.8 });
+            
+            graphics.x = x;
+            graphics.y = y;
+            
+            this.world.addChild(graphics);
+            this.particles.push({
+                graphics,
+                vx,
+                vy,
+                life,
+                maxLife: life
+            });
+        }
+    }
+
+    private updateParticles(dt: number) {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.life -= dt;
+            
+            if (p.life <= 0) {
+                p.graphics.destroy(true);
+                this.particles.splice(i, 1);
+                continue;
+            }
+            
+            p.graphics.x += p.vx * dt;
+            p.graphics.y += p.vy * dt;
+            p.graphics.alpha = p.life / p.maxLife;
+            p.graphics.scale.set(p.life / p.maxLife);
+        }
     }
 
     private syncBullets(bullets: Bullet[], players: Player[]) {
@@ -172,5 +241,7 @@ export class ArenaRenderer {
     public destroy() {
         this.players.clear();
         this.obstacles.clear();
+        this.particles.forEach(p => p.graphics.destroy(true));
+        this.particles = [];
     }
 }

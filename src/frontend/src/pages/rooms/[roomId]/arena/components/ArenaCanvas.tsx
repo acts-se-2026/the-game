@@ -50,13 +50,13 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
     useEffect(() => {
         if (!pixi) return;
 
-        let frame: number;
         const tick = () => {
             pixi.renderer.syncState(stateRef.current);
-            frame = requestAnimationFrame(tick);
         };
-        frame = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(frame);
+        pixi.app.ticker.add(tick);
+        return () => {
+            pixi.app.ticker.remove(tick);
+        };
     }, [stateRef, pixi]);
 
     // This effect runs once when the component is first loaded
