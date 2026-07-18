@@ -21,6 +21,7 @@ PLAYER_DAMAGE = 10
 
 BULLET_SPEED = 10
 BULLET_SIZE = Vec2(5, 5)
+BULLET_DAMAGE = 10
 
 ENABLE_CHESTS = False
 CHEST_SIZE = Vec2(20, 20)
@@ -88,8 +89,8 @@ class Player:
         self.effects = [] #list of tuples 0: effect name 
                                         # 1: frame where the effect should be removed
     
-    def hit(self, bullet):
-        self.hp -= bullet.owner.damage
+    def hit(self, damage):
+        self.hp -= damage
 
     def get_shooting_dir(self):
         return Vec2(math.cos(self.rotation), math.sin(self.rotation))
@@ -130,12 +131,12 @@ class Player:
 class Bullet:
     next_id = 0
 
-    def __init__(self, pos: Vec2, movement_dir: Vec2, owner_uuid: str, player : Player):
+    def __init__(self, pos: Vec2, movement_dir: Vec2, owner_uuid: str, damage=BULLET_DAMAGE):
         self.pos = pos
         self.movement_dir = movement_dir
         self.owner_uuid = owner_uuid
 
-        self.owner = player
+        self.damage = damage
 
         self.id = Bullet.next_id
         Bullet.next_id += 1
@@ -350,7 +351,7 @@ class State:
         for player in self.players:
             if player.uuid == player_uuid and self.current_frame - player.last_shot_time > SHOOTING_DELAY:
                 direction = player.get_shooting_dir()
-                self.bullets.append(Bullet(player.pos + direction * CANNON_END_RADIUS, direction, player.uuid, player))
+                self.bullets.append(Bullet(player.pos + direction * CANNON_END_RADIUS, direction, player.uuid, player.damage))
                 self.unsent_bullet_ids.append(self.bullets[-1].id)
                 player.last_shot_time = self.current_frame
 
@@ -414,7 +415,7 @@ class State:
                 if player.uuid == bullet.owner_uuid:
                     continue
                 if Box.area_colliding(player.get_collision_box(), bullet.get_collision_box()):
-                    player.hit(bullet)
+                    player.hit(bullet.damage)
                     if player.hp <= 0:
                         killers_by_player.setdefault(player.uuid, bullet.owner_uuid)
                     removed_bullet_ids.add(bullet.id)
