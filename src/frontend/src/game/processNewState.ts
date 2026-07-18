@@ -16,10 +16,12 @@ export const processNewState = (newState: GameStartPacket["data"], currentState:
 
     const updatedObstacles = currentState.obstacles;
     const updatedBullets = newState.bullets;
+    const updatedChests = newState.chests;
 
     return {
         players: updatedPlayers,
         obstacles: updatedObstacles,
         bullets: updatedBullets,
+        chests: updatedChests
     };
 }

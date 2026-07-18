@@ -22,7 +22,7 @@ BULLET_SPEED = 10
 BULLET_SIZE = Vec2(5, 5)
 
 ENABLE_CHESTS = False
-HEALTH_CHEST_SIZE = Vec2(10, 10)
+HEALTH_CHEST_SIZE = Vec2(20, 20)
 CHEST_SPAWN_DELAY = 200
 
 
@@ -31,6 +31,7 @@ class HealthChest:
         self.pos = pos
         self.health = 50
 
+        self.size = HEALTH_CHEST_SIZE
         self.box = Box(self.pos - HEALTH_CHEST_SIZE / 2, HEALTH_CHEST_SIZE)
 
         self.used = False
@@ -39,25 +40,10 @@ class HealthChest:
         return {
             "x": self.pos.x,
             "y": self.pos.y,
-        }
-ENABLE_CHESTS = False
-HEALTH_CHEST_SIZE = Vec2(10, 10)
-CHEST_SPAWN_DELAY = 200
-
-
-class HealthChest:
-    def __init__(self, pos):
-        self.pos = pos
-        self.health = 50
-
-        self.box = Box(self.pos - HEALTH_CHEST_SIZE / 2, HEALTH_CHEST_SIZE)
-
-        self.used = False
-    
-    def to_dict(self):
-        return {
-            "x": self.pos.x,
-            "y": self.pos.y,
+            "size": {
+                "x": self.size.x,
+                "y": self.size.y
+            }
         }
 
 class Box:
@@ -142,7 +128,7 @@ class StateDiff:
             "players": [player.to_dict() for player in self.players],
             "bullets": [bullet.to_dict() for bullet in self.allBullets],
             "explosion_positions": [pos.to_dict() for pos in self.explosion_positions],
-            "chests": [chest.to_dict() for chest in self.allChests],
+            "chests": [chest.to_dict() for chest in self.allChests]
         }
 
 
