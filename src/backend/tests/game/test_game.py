@@ -1,11 +1,21 @@
-import pytest
 import asyncio
+import math
+import pytest
 from app.auth.types import SessionPayload
 from game.backendConnections.room import Room
-from game.state import Player, Box, State
-from game.state import PLAYER_SIZE, PLAYER_SPEED, SHOOTING_DELAY, BULLET_SPEED, BULLET_SIZE, CANNON_END_RADIUS
+
+from game.state import (
+    BULLET_SIZE,
+    BULLET_SPEED,
+    CANNON_END_RADIUS,
+    PLAYER_SIZE,
+    PLAYER_SPEED,
+    SHOOTING_DELAY,
+    Box,
+    Player,
+    State,
+)
 from game.vector import Vec2
-import math
 
 
 class FakeWebSocket:
@@ -35,6 +45,7 @@ def test_game_start_includes_player_names():
         }
 
     asyncio.run(start_game())
+
 
 def test_collisions():
     box1 = Box(Vec2(0, 0), Vec2(5, 5))

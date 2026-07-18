@@ -24,11 +24,17 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Install Ruff
+        run: uv tool install ruff
+
       - name: Sync dependencies
         run: uv sync
 
       - name: Check syntax errors
         run: uv run python -m compileall app/
+
+      - name: Lint (ruff)
+        run: uv run ruff check .
 
       - name: Run tests
         run: uv run pytest

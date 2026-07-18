@@ -1,2 +1,4 @@
+from .connectionManager import ConnectionManager, connectionManager
 from .room import Room
-from .connectionManager import connectionManager, ConnectionManager
+
+__all__ = ["ConnectionManager", "connectionManager", "Room"]

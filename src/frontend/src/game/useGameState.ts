@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { type ArenaState } from "./types";
 import { useKeyboardMovement } from "./useKeyboardMovement";
-import { useWsConnection } from "../context/WsContext";
-import { useUser } from "../context/UserContext";
+import { useWsConnection } from "../context/WsContext/useWsConnection";
+import { useUser } from "../context/UserContext/useUser";
 import type { GameStartPacket, WsUnknownPacket } from "../context/WsContext/types";
 import { useLocation } from "react-router";
 import { processNewState } from "./processNewState";
@@ -36,6 +36,7 @@ function buildArenaState(data: GameStartPacket["data"] | undefined, localId: str
             x: bullet.x,
             y: bullet.y,
             heading: bullet.heading,
+            ownerId : bullet.ownerId
         })),
     };
 }

@@ -1,9 +1,11 @@
-from fastapi import WebSocket
-from typing import Dict
 import asyncio
+from typing import Dict
+
+from fastapi import WebSocket
 
 from app.auth.types import SessionPayload
 from game.state import State
+
 
 class Room:
     def __init__(self, room_id: str):

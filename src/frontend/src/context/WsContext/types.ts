@@ -37,6 +37,7 @@ export interface GameStartPacket {
             x: number;
             y: number;
             heading: number;
+            ownerId : string;
         }[];
         deaths?: DeathRecord[];
     }

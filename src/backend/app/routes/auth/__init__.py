@@ -1,1 +1,1 @@
-from .router import authRouter
+from .router import authRouter as authRouter

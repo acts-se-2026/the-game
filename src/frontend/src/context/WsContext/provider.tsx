@@ -1,26 +1,17 @@
-import React, { createContext, useContext, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import type { WsUnknownPacket } from "./types";
-
-interface WsConnectionContextType {
-    socket: React.RefObject<WebSocket | null>;
-    sendMessage: (type: string, data?: unknown) => void;
-    connectWs: (path: string) => void;
-    isConnected: boolean;
-    disconnectWs: () => void;
-}
-
-const WsConnectionContext = createContext<WsConnectionContextType | null>(null);
+import { WsConnectionContext } from "./context";
 
 interface ProviderProps {
     children: ReactNode;
 }
 
-export function WebSocketProvider({ children }: ProviderProps) {
+export function WsConnectionProvider({ children }: ProviderProps) {
     const socketRef = useRef<WebSocket | null>(null);
-    const [isConnected, setIsConnected] = React.useState(false);
+    const [isConnected, setIsConnected] = useState(false);
 
-    const connectWs = (path: string) => {
+    const connectWs = useCallback((path: string) => {
         if (socketRef.current && (socketRef.current.readyState === WebSocket.OPEN || socketRef.current.readyState === WebSocket.CONNECTING)) {
             console.warn("WebSocket is already active or connecting.");
             return;
@@ -48,9 +39,9 @@ export function WebSocketProvider({ children }: ProviderProps) {
         };
 
         socketRef.current = ws;
-    };
+    }, []);
 
-    const disconnectWs = () => {
+    const disconnectWs = useCallback(() => {
         const currentSocket = socketRef.current;
 
         if (currentSocket) {
@@ -58,7 +49,7 @@ export function WebSocketProvider({ children }: ProviderProps) {
             setIsConnected(false);
             currentSocket.close();
         }
-    }
+    }, []);
 
     useEffect(() => {
         return () => {
@@ -68,7 +59,7 @@ export function WebSocketProvider({ children }: ProviderProps) {
         };
     }, []);
 
-    const sendMessage = (type: string, data?: unknown) => {
+    const sendMessage = useCallback((type: string, data?: unknown) => {
         const ws = socketRef.current;
 
         if (ws && ws.readyState === WebSocket.OPEN) {
@@ -77,19 +68,11 @@ export function WebSocketProvider({ children }: ProviderProps) {
         } else {
             console.warn("Connection is not open");
         }
-    };
+    }, []);
 
     return (
         <WsConnectionContext.Provider value={{ socket: socketRef, sendMessage, connectWs, isConnected, disconnectWs }}>
             {children}
         </WsConnectionContext.Provider>
     );
-}
-
-export function useWsConnection(): WsConnectionContextType {
-    const context = useContext(WsConnectionContext);
-    if (!context) {
-        throw new Error("useWsConnection must be used within a WebSocketProvider");
-    }
-    return context;
 }
