@@ -20,7 +20,7 @@ SHOOTING_DELAY = 5
 PLAYER_DAMAGE = 10
 
 BULLET_SPEED = 10
-BULLET_SIZE = Vec2(5, 5)
+BULLET_SIZE = Vec2(6, 6)
 BULLET_DAMAGE = 10
 
 ENABLE_CHESTS = False
@@ -149,7 +149,8 @@ class Bullet:
             "x": self.pos.x,
             "y": self.pos.y,
             "heading": math.atan2(self.movement_dir.y, self.movement_dir.x),
-            "ownerId": self.owner_uuid
+            "ownerId": self.owner_uuid,
+            "damage": self.damage
         }
 
 
