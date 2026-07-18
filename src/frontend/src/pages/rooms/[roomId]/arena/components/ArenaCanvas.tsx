@@ -55,7 +55,7 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
 
         let frame: number;
         const tick = () => {
-            pixi.renderer.syncState(stateRef.current, user.session_id);
+            pixi.renderer.syncState(stateRef.current, user?.session_id ?? "");
             frame = requestAnimationFrame(tick);
         };
         frame = requestAnimationFrame(tick);
