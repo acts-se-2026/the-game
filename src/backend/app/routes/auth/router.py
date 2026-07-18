@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, Response
 from pydantic import BaseModel
-
 from app.auth.auth import getCurrentUser
-from app.auth.jwt import createSessionToken
 from app.auth.types import SessionPayload
 from app.config.config import config
+
+from app.auth.jwt import createSessionToken
 
 authRouter = APIRouter(prefix="/api/auth", tags=["auth"])
 

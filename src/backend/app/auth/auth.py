@@ -1,11 +1,9 @@
 import jwt
+
 from fastapi import Cookie, HTTPException
-
-from app.config.config import config
-
 from .jwt import decodeSessionToken
 from .types import SessionPayload
-
+from app.config.config import config
 
 async def getCurrentUser(session: str | None = Cookie(None, alias=config.JWT_COOKIE_NAME)) -> SessionPayload:
     if session is None:

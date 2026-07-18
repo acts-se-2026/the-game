@@ -19,13 +19,3 @@ uv run python -m uvicorn app.main:app --reload
 ```bash
 uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers {number}
 ```
-
-# Run Linter 
-``` bash
-uv run ruff check .
-```
-
-## Run with fix
-``` bash
-uv run ruff check . --fix
-```

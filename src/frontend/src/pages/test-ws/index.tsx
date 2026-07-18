@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useWsConnection } from "../../context/WsContext/useWsConnection";
+import { useWsConnection } from "../../context/WsContext";
 import type { WsUnknownPacket } from "../../context/WsContext/types";
 
 const TestWSPage = () => {
@@ -26,7 +26,7 @@ const TestWSPage = () => {
         return () => {
             currentSocket.removeEventListener("message", handleIncomingPacket);
         };
-    }, [socket]);
+    }, [socket, socket.current]);
 
     const handleTriggerMessage = () => {
         if (!inputContent.trim()) return;

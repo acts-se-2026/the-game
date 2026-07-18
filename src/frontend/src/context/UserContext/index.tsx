@@ -1,9 +1,17 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { backendApi } from "../../api/backend";
 import type { UserSession } from "./types";
-import { UserContext } from "./context";
 
-export function UserContextProvider({ children }: { children: ReactNode }) {
+type UserContextType = {
+    user: UserSession | null;
+    isLoading: boolean;
+    login: (username: string) => Promise<void>;
+    logout: () => Promise<void>;
+};
+
+const UserContext = createContext<UserContextType | undefined>(undefined);
+
+export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<UserSession | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -19,10 +27,7 @@ export function UserContextProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        const initAuth = async () => {
-            await checkAuthStatus();
-        };
-        initAuth();
+        checkAuthStatus();
     }, []);
 
     const login = async (username: string) => {
@@ -53,4 +58,12 @@ export function UserContextProvider({ children }: { children: ReactNode }) {
             {children}
         </UserContext.Provider>
     );
+}
+
+export function useUser() {
+    const context = useContext(UserContext);
+    if (context === undefined) {
+        throw new Error("useUser must be used within a UserProvider");
+    }
+    return context;
 }

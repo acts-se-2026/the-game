@@ -24,7 +24,6 @@ export type Bullet = {
   x: number
   y: number
   heading: number
-  ownerId: string
 }
 
 export type ArenaState = {

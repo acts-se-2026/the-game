@@ -1,7 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router";
 import PageTitleTemplate from "../components/PageTitleTemplate";
-import { useUser } from "../context/UserContext/useUser";
+import { useUser } from "../context/UserContext";
 
 export default function LoginPage() {
     const navigate = useNavigate();

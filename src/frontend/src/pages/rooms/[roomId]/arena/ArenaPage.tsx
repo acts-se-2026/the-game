@@ -1,7 +1,7 @@
 import { useLocation, useNavigate, useParams } from "react-router";
 import { useGameState } from "../../../../game/useGameState";
 import ArenaCanvas from "./components/ArenaCanvas";
-import { useWsConnection } from "../../../../context/WsContext/useWsConnection";
+import { useWsConnection } from "../../../../context/WsContext";
 import { useEffect, useRef } from "react";
 
 export default function ArenaPage() {

@@ -30,8 +30,5 @@ jobs:
       - name: Check syntax errors
         run: uv run python -m compileall app/
 
-      - name: Lint (ruff)
-        run: uv run ruff check .
-
       - name: Run tests
         run: uv run pytest

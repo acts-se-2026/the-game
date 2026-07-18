@@ -1,11 +1,8 @@
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
-
-import jwt
-
 from app.auth.types import SessionPayload
+import jwt
 from app.config.config import config
-
 
 def createSessionToken(username: str) -> str:
     expires_at = datetime.now(timezone.utc) + timedelta(
