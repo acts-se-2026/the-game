@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from app.auth.auth import getCurrentUser
 from app.auth.types import SessionPayload
 
-roomsRouter = APIRouter(prefix="/api/rooms", tags=["test"])
+roomsRouter = APIRouter(prefix="/api/rooms", tags=["rooms"])
 
 @roomsRouter.get("")
 def getAllRooms():
