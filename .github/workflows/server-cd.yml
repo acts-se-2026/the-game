@@ -51,6 +51,6 @@ jobs:
           ssh dev@killordie.mooo.com "echo HELLO > hello.txt"
           echo "${{ secrets.GITHUB_TOKEN }}" | ssh dev@killordie.mooo.com "docker login ghcr.io -u ${{ github.actor }} --password-stdin"
 
-          ssh dev@killordie.mooo.com "docker compose down"
+          ssh dev@killordie.mooo.com "docker compose down && docker system prune"
           scp docker-compose.yml dev@killordie.mooo.com:/home/dev/
-          ssh dev@killordie.mooo.com "docker compose pull && docker compose up -d"
+          ssh dev@killordie.mooo.com "docker compose up -d"
