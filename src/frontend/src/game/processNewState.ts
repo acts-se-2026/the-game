@@ -17,7 +17,7 @@ export const processNewState = (newState: GameStartPacket["data"], currentState:
 
     const updatedObstacles = currentState.obstacles;
     const updatedBullets = newState.bullets;
-    const updatedChests = newState.chests;
+    const updatedChests = newState.chests ?? [];
 
     return {
         players: updatedPlayers,
