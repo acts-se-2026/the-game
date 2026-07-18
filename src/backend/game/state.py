@@ -155,7 +155,7 @@ class Bullet:
 
 
 class StateDiff:
-    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[dict], allChests : list[HealthChest], deaths: list[dict]):
+    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[dict], allChests : list[Chest], deaths: list[dict]):
         self.allBullets = allBullets # list of Bullet
         self.players = players # list of Player
         self.explosion_positions = explosion_positions # list of dicts
