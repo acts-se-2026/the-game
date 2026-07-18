@@ -1,4 +1,4 @@
-import { Application, Container, Graphics, Text } from "pixi.js";
+import { Application, Container, getGlobalRenderableBounds, Graphics, Text } from "pixi.js";
 import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player, type Chest } from "../../../../../game/types";
 
 const PLAYER_RADIUS = 18;
@@ -77,10 +77,20 @@ export class ArenaRenderer {
             const graphics = new Graphics();
             this.world.addChild(graphics);
             this.chests.set(key, graphics);
+            
+            let ChestColor = 0x3fed13; // default
+
+            if (chest.effect === "health") {
+                ChestColor = 0x3fed13;
+            } else if (chest.effect === "speed") {
+                ChestColor = 0xede213;
+            } else if (chest.effect === "strength") {
+                ChestColor = 0xeb220c;
+            }
 
             graphics.clear()
                 .rect(chest.x, chest.y, chest.size.x, chest.size.y)
-                .fill({ color: 0x19bf45 })
+                .fill({ color: ChestColor })
         });
 
 

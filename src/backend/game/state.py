@@ -17,24 +17,33 @@ PLAYER_SIZE = Vec2(36, 36)
 CANNON_END_RADIUS = 36//2 + 16
 PLAYER_SPEED = 5
 SHOOTING_DELAY = 5
+PLAYER_DAMAGE = 10
 
 BULLET_SPEED = 10
 BULLET_SIZE = Vec2(5, 5)
 
 ENABLE_CHESTS = False
-HEALTH_CHEST_SIZE = Vec2(20, 20)
+CHEST_SIZE = Vec2(20, 20)
 CHEST_SPAWN_DELAY = 200
 
+#-CHEST EFFECTS-#
+CHEST_HEALTH = 20
+CHEST_SPEED = PLAYER_SPEED * 2
+CHEST_STRENGTH = PLAYER_DAMAGE * 3
 
-class HealthChest:
+EFFECT_LENGTH = 200
+
+
+class Chest:
     def __init__(self, pos):
         self.pos = pos
-        self.health = 50
+        self.effect = "" #str
 
-        self.size = HEALTH_CHEST_SIZE
-        self.box = Box(self.pos - HEALTH_CHEST_SIZE / 2, HEALTH_CHEST_SIZE)
+        self.size = CHEST_SIZE
+        self.box = Box(self.pos - CHEST_SIZE / 2, CHEST_SIZE)
 
         self.used = False
+        
     
     def to_dict(self):
         return {
@@ -43,8 +52,10 @@ class HealthChest:
             "size": {
                 "x": self.size.x,
                 "y": self.size.y
-            }
+            },
+            "effect": self.effect
         }
+
 
 class Box:
     def __init__(self, pos: Vec2, size: Vec2):
@@ -70,9 +81,15 @@ class Player:
         self.rotation = 0
 
         self.movement_dir = Vec2(0, 0)
+
+        self.speed = PLAYER_SPEED
+        self.damage = PLAYER_DAMAGE
+
+        self.effects = [] #list of tuples 0: effect name 
+                                        # 1: frame where the effect should be removed
     
-    def hit(self):
-        self.hp -= 10
+    def hit(self, bullet):
+        self.hp -= bullet.owner.damage
 
     def get_shooting_dir(self):
         return Vec2(math.cos(self.rotation), math.sin(self.rotation))
@@ -88,17 +105,37 @@ class Player:
             "heading": self.rotation,
             "hp": self.hp,
         }
-        
 
+    def apply_effect(self, effect: tuple[str, int]):
+        match effect[0]:
+            case "health":
+                self.hp = min(100, self.hp+CHEST_HEALTH)
+            case "speed":
+                self.speed = CHEST_SPEED
+            case "strength":
+                self.damage = CHEST_STRENGTH
+        
+        if effect[0] != "health":
+            self.effects.append(effect)
+    
+    def remove_effect(self, effect: tuple[str, int]):
+        self.effects.remove(effect)
+        match effect[0]:
+            case "speed":
+                self.speed = PLAYER_SPEED
+            case "strength":
+                self.damage = PLAYER_DAMAGE
 
 
 class Bullet:
     next_id = 0
 
-    def __init__(self, pos: Vec2, movement_dir: Vec2, owner_uuid: str):
+    def __init__(self, pos: Vec2, movement_dir: Vec2, owner_uuid: str, player : Player):
         self.pos = pos
         self.movement_dir = movement_dir
         self.owner_uuid = owner_uuid
+
+        self.owner = player
 
         self.id = Bullet.next_id
         Bullet.next_id += 1
@@ -117,7 +154,7 @@ class Bullet:
 
 
 class StateDiff:
-    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[Vec2], allChests : list[HealthChest], deaths: list[dict]):
+    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[Vec2], allChests : list[Chest], deaths: list[dict]):
         self.allBullets = allBullets # list of Bullet
         self.players = players # list of Player
         self.explosion_positions = explosion_positions # list of Vec2
@@ -154,7 +191,7 @@ class State:
         self.unsent_bullet_ids = []
         
         self.obstacles = obstacles
-        self.chests = [] #List of HealthChest Class
+        self.chests = [] #List of Chest Class
         self.players = []
 
         self.next_chest_spawn = CHEST_SPAWN_DELAY #frame number
@@ -264,18 +301,19 @@ class State:
         self.players.append(player)
         return player
 
-    def add_health_chest_at_random_position(self):
+    def add_chest_at_random_position(self):
         x = random.randint(0, LEVEL_SIZE.x)
         y = random.randint(0, LEVEL_SIZE.y)
 
-        chest = HealthChest(Vec2(x, y))
+        chest = Chest(Vec2(x, y))
 
         while self.is_box_in_obstacle(chest.box) or self.is_box_on_player(chest.box):
             x = random.randint(0, LEVEL_SIZE.x)
             y = random.randint(0, LEVEL_SIZE.y)
 
-            chest = HealthChest(Vec2(x, y))
+            chest = Chest(Vec2(x, y))
         
+        chest.effect = random.choice(["health", "speed", "strength"])
         self.chests.append(chest)
 
     def is_box_on_player(self, box):
@@ -312,7 +350,7 @@ class State:
         for player in self.players:
             if player.uuid == player_uuid and self.current_frame - player.last_shot_time > SHOOTING_DELAY:
                 direction = player.get_shooting_dir()
-                self.bullets.append(Bullet(player.pos + direction * CANNON_END_RADIUS, direction, player.uuid))
+                self.bullets.append(Bullet(player.pos + direction * CANNON_END_RADIUS, direction, player.uuid, player))
                 self.unsent_bullet_ids.append(self.bullets[-1].id)
                 player.last_shot_time = self.current_frame
 
@@ -320,9 +358,9 @@ class State:
     # Called from outside
     def step_frame(self):
         self.current_frame += 1
-
         for player in self.players:
-            delta = (PLAYER_SPEED * player.movement_dir).rounded()
+            print(player.effects)
+            delta = (player.speed * player.movement_dir).rounded()
 
             assert player.pos.is_int(), "Collision detection only works with integer coordinates"
             assert not self.is_box_in_obstacle(player.get_collision_box())
@@ -344,10 +382,10 @@ class State:
                     break
 
 
-            #CHECKS COLLISION WITH HEALTH CHEST
+            #CHECKS COLLISION WITH CHEST
             for chest in self.chests:
                 if Box.area_colliding(player.get_collision_box(), chest.box):
-                    player.hp += chest.health
+                    player.apply_effect((chest.effect, self.current_frame+EFFECT_LENGTH))
                     chest.used = True   
 
         # prepare information about new bullets
@@ -376,7 +414,7 @@ class State:
                 if player.uuid == bullet.owner_uuid:
                     continue
                 if Box.area_colliding(player.get_collision_box(), bullet.get_collision_box()):
-                    player.hit()
+                    player.hit(bullet)
                     if player.hp <= 0:
                         killers_by_player.setdefault(player.uuid, bullet.owner_uuid)
                     removed_bullet_ids.add(bullet.id)
@@ -400,8 +438,14 @@ class State:
         self.players = alive_players
 
         if self.current_frame == self.next_chest_spawn:
-            self.add_health_chest_at_random_position()
+            self.add_chest_at_random_position()
             self.next_chest_spawn += CHEST_SPAWN_DELAY
+        
+        #REMOVE PLAYER EFFECTS
+        for player in self.players:
+            for effect in player.effects:
+                if effect[1] == self.current_frame:
+                    player.remove_effect(effect)
 
         # remove dead bullets
         self.bullets = [bullet for bullet in self.bullets if bullet.id not in removed_bullet_ids]
