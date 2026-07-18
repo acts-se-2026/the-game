@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { type ArenaState } from "./types";
+import { type ArenaState, ARENA_WIDTH, ARENA_HEIGHT } from "./types";
 import { useKeyboardMovement } from "./useKeyboardMovement";
 import { useWsConnection } from "../context/WsContext/useWsConnection";
 import { useUser } from "../context/UserContext/useUser";
@@ -55,13 +55,22 @@ function buildArenaState(data: GameStartPacket["data"] | undefined, localId: str
 
     };
 }
+const EMPTY_ARENA: ArenaState = {
+    obstacles: [],
+    players: [],
+    bullets: [],
+    chests: [],
+    explosion_positions: []
+};
 
 export function useGameState() {
     const location = useLocation();
     const { socket, sendMessage } = useWsConnection();
     const { user } = useUser();
     const arena = useRef<ArenaState>(
-        buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [], chests: []}
+        location.state?.arenaState
+            ? processNewState(location.state.arenaState, EMPTY_ARENA, user?.session_id)
+            : EMPTY_ARENA
     );
     const [matchResult, setMatchResult] = useState<MatchResult>(null);
     const [killedBy, setKilledBy] = useState<string | null>(null);
@@ -87,13 +96,13 @@ export function useGameState() {
                 case "state_diff": {
                     const arenaState = packet.data as GameStartPacket["data"];
                     const previousPlayers = arena.current.players;
+                    arena.current = processNewState(arenaState, arena.current, user?.session_id);
+                  
                     const localPlayerTookDamage = didLocalPlayerTakeDamage(
                         previousPlayers,
                         arenaState.players,
                         user?.session_id
                     );
-
-                    arena.current = processNewState(arenaState, arena.current);
 
                     if (localPlayerTookDamage) {
                         playSfx("bullethit");
@@ -150,7 +159,7 @@ export function useGameState() {
         if (!pos || !playerPos) return;
 
         // Always aim towards the mouse cursor
-        const heading = Math.atan2(pos.y - playerPos.y, pos.x - playerPos.x);
+        const heading = Math.atan2(pos.y - ARENA_HEIGHT / 2, pos.x - ARENA_WIDTH / 2);
 
         // Don't send if the aim direction did not change
         if (lastSentHeading.current === heading) return;

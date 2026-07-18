@@ -18,7 +18,7 @@ export default function MatchResultOverlay({ result, killedBy, onSpectate }: Mat
             }`}
             aria-live="assertive"
         >
-            <h2 className={`text-center text-6xl font-black tracking-tight sm:text-8xl ${isWin ? "text-white" : "text-red-500"}`}>
+            <h2 className={`select-none text-center text-6xl font-black tracking-tight sm:text-8xl ${isWin ? "text-white" : "text-red-500"}`}>
                 {isWin ? "YOU WIN!" : "YOU LOSE!"}
             </h2>
             {!isWin && (

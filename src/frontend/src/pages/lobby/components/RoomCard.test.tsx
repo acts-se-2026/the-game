@@ -8,6 +8,7 @@ const room: PublicRoom = {
     room_id: "room-1234",
     player_count: 2,
     max_players: 8,
+    players: ["A", "B"]
 };
 
 describe("RoomCard", () => {
@@ -15,8 +16,10 @@ describe("RoomCard", () => {
         render(<RoomCard room={room} onJoin={() => {}} />);
 
         expect(screen.getByText("room-1234")).toBeTruthy();
-        expect(screen.getByText("2/8 players")).toBeTruthy();
-    });
+        expect(
+            screen.getByText((_, element) => element?.textContent?.replace(/\s+/g, " ").trim() === "2 of 8 players")
+        ).toBeTruthy();
+        });
 
     it("calls onJoin with the room id when the join button is clicked", () => {
         const onJoin = vi.fn();

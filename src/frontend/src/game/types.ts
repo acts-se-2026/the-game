@@ -45,4 +45,5 @@ export type ArenaState = {
   players: Player[]
   bullets: Bullet[]
   chests: Chest[]
+  explosion_positions?: { x: number; y: number; color: string }[]
 }
