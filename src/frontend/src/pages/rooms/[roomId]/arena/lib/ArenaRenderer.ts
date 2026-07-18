@@ -140,7 +140,7 @@ export class ArenaRenderer {
                 player => player.id === bullet.ownerId
             );
             let radius = Math.floor(Math.sqrt(bullet.damage * 3)+1)
-            console.log(radius)
+            
             graphics.clear()
                 .circle(bullet.x, bullet.y, radius).fill({
                     color: owner ? Number(owner.color.replace("#", "0x")) : 0xff0000
