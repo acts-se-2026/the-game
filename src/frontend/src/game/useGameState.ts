@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { type ArenaState } from "./types";
+import { type ArenaState, ARENA_WIDTH, ARENA_HEIGHT } from "./types";
 import { useKeyboardMovement } from "./useKeyboardMovement";
 import { useWsConnection } from "../context/WsContext/useWsConnection";
 import { useUser } from "../context/UserContext/useUser";
@@ -114,7 +114,7 @@ export function useGameState() {
         if (!pos || !playerPos) return;
 
         // Always aim towards the mouse cursor
-        const heading = Math.atan2(pos.y - playerPos.y, pos.x - playerPos.x);
+        const heading = Math.atan2(pos.y - ARENA_HEIGHT / 2, pos.x - ARENA_WIDTH / 2);
 
         // Don't send if the aim direction did not change
         if (lastSentHeading.current === heading) return;

@@ -51,6 +51,7 @@ export class ArenaRenderer {
             this.syncPlayers(state.players);
             this.syncBullets(state.bullets, state.players);
             this.syncChests(state.chests);
+            this.syncCamera(state.players, self_id);
 
             if (state.explosion_positions && state.explosion_positions.length > 0) {
                 state.explosion_positions.forEach(pos => this.spawnExplosion(pos.x, pos.y, pos.color));
@@ -108,6 +109,15 @@ export class ArenaRenderer {
             p.graphics.alpha = p.life / p.maxLife;
             p.graphics.scale.set(p.life / p.maxLife);
         }
+    }
+
+    private syncCamera(players: Player[], self_id: string) {
+        const self_player = players.find(p => p.id === self_id)
+        if (self_player?.x == undefined || self_player?.y == undefined) {
+            return;
+        }
+        this.world.x = -self_player?.x + this.world.width / 2
+        this.world.y = -self_player?.y + this.world.height / 2
     }
 
     private syncBullets(bullets: Bullet[], players: Player[]) {
