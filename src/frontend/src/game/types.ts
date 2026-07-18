@@ -29,8 +29,18 @@ export type Bullet = {
   ownerId: string
 }
 
+export type Chest = {
+  x: number
+  y: number
+  size: {
+    x: number
+    y: number
+  }
+}
+
 export type ArenaState = {
   obstacles: Obstacle[]
   players: Player[]
   bullets: Bullet[]
+  chests: Chest[]
 }

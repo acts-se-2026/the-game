@@ -1,5 +1,5 @@
 import { Application, Container, Graphics, Text } from "pixi.js";
-import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player } from "../../../../../game/types";
+import { ARENA_WIDTH, ARENA_HEIGHT, type ArenaState, type Bullet, type Obstacle, type Player, type Chest } from "../../../../../game/types";
 
 const PLAYER_RADIUS = 18;
 const GRID_SIZE = 30;
@@ -10,6 +10,7 @@ export class ArenaRenderer {
     private players: Map<string, Container> = new Map();
     private obstacles: Map<string, Graphics> = new Map();
     private bullets: Map<string, Graphics> = new Map();
+    private chests: Map<string, Graphics> = new Map();
 
     constructor(app: Application) {
         this.app = app;
@@ -37,6 +38,7 @@ export class ArenaRenderer {
         this.syncObstacles(state.obstacles);
         this.syncPlayers(state.players);
         this.syncBullets(state.bullets, state.players);
+        this.syncChests(state.chests)
     }
 
     private syncBullets(bullets: Bullet[], players: Player[]) {
@@ -62,6 +64,26 @@ export class ArenaRenderer {
                     color: owner ? Number(owner.color.replace("#", "0x")) : 0xff0000
                 });
         });
+    }
+
+    private syncChests(data : Chest[]) {
+        for (const graphics of this.chests.values()) {
+            graphics.destroy(true);
+        }
+        this.chests.clear();
+
+        data.forEach((chest, idx) => {
+            const key = String(idx);
+            const graphics = new Graphics();
+            this.world.addChild(graphics);
+            this.chests.set(key, graphics);
+
+            graphics.clear()
+                .rect(chest.x, chest.y, chest.size.x, chest.size.y)
+                .fill({ color: 0x19bf45 })
+        });
+
+
     }
 
     private syncObstacles(data: Obstacle[]) {

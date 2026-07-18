@@ -9,6 +9,7 @@ const makeCurrentState = (): ArenaState => ({
     ],
     obstacles: [{ x: 5, y: 5, size: { x: 10, y: 10 } }],
     bullets: [],
+    chests: [],
 });
 
 const makePacketData = (): GameStartPacket["data"] => ({
@@ -18,6 +19,7 @@ const makePacketData = (): GameStartPacket["data"] => ({
         { id: "p2", x: 300, y: 400, heading: 0, hp: 100 },
     ],
     bullets: [{ x: 10, y: 20, heading: 0.5, ownerId: 'p1' }],
+    chests: [],
 });
 
 describe("processNewState", () => {

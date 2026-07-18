@@ -21,6 +21,30 @@ SHOOTING_DELAY = 5
 BULLET_SPEED = 10
 BULLET_SIZE = Vec2(5, 5)
 
+ENABLE_CHESTS = False
+HEALTH_CHEST_SIZE = Vec2(20, 20)
+CHEST_SPAWN_DELAY = 200
+
+
+class HealthChest:
+    def __init__(self, pos):
+        self.pos = pos
+        self.health = 50
+
+        self.size = HEALTH_CHEST_SIZE
+        self.box = Box(self.pos - HEALTH_CHEST_SIZE / 2, HEALTH_CHEST_SIZE)
+
+        self.used = False
+    
+    def to_dict(self):
+        return {
+            "x": self.pos.x,
+            "y": self.pos.y,
+            "size": {
+                "x": self.size.x,
+                "y": self.size.y
+            }
+        }
 
 class Box:
     def __init__(self, pos: Vec2, size: Vec2):
@@ -93,10 +117,11 @@ class Bullet:
 
 
 class StateDiff:
-    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[Vec2], deaths: list[dict]):
+    def __init__(self, players: list[Player], allBullets: list[Bullet], explosion_positions: list[Vec2], allChests : list[HealthChest], deaths: list[dict]):
         self.allBullets = allBullets # list of Bullet
         self.players = players # list of Player
         self.explosion_positions = explosion_positions # list of Vec2
+        self.allChests = allChests
         self.deaths = deaths
 
     def to_dict(self):
@@ -104,7 +129,8 @@ class StateDiff:
             "players": [player.to_dict() for player in self.players],
             "bullets": [bullet.to_dict() for bullet in self.allBullets],
             "explosion_positions": [pos.to_dict() for pos in self.explosion_positions],
-            "deaths": self.deaths,
+            "chests": [chest.to_dict() for chest in self.allChests],
+            "deaths": self.deaths
         }
 
 
@@ -121,6 +147,18 @@ class GameInfo:
 # - add players 
 # - do anything you want
 class State:
+    def __init__(self, obstacles=[]):
+        self.current_frame = 0
+        self.bullets = []
+        
+        self.unsent_bullet_ids = []
+        
+        self.obstacles = obstacles
+        self.chests = [] #List of HealthChest Class
+        self.players = []
+
+        self.next_chest_spawn = CHEST_SPAWN_DELAY #frame number
+
     # Creates a State that's ready to run a real game
     def init_populated(player_uuids: list[str]):
         s = State(State.obstacle_generator())
@@ -209,17 +247,6 @@ class State:
         if len(visited) == GRID_SIZE.x*GRID_SIZE.y - len(obstacles_grid_pos):
             return True
         return False
-
-
-    def __init__(self, obstacles=[]):
-        self.current_frame = 0
-        self.bullets = []
-        
-        self.unsent_bullet_ids = []
-        
-        self.obstacles = obstacles
-        self.players = []
-
         
     def add_players_at_random_positions(self, player_uuids: list[str]):
         for uuid in player_uuids:
@@ -237,6 +264,25 @@ class State:
         self.players.append(player)
         return player
 
+    def add_health_chest_at_random_position(self):
+        x = random.randint(0, LEVEL_SIZE.x)
+        y = random.randint(0, LEVEL_SIZE.y)
+
+        chest = HealthChest(Vec2(x, y))
+
+        while self.is_box_in_obstacle(chest.box) or self.is_box_on_player(chest.box):
+            x = random.randint(0, LEVEL_SIZE.x)
+            y = random.randint(0, LEVEL_SIZE.y)
+
+            chest = HealthChest(Vec2(x, y))
+        
+        self.chests.append(chest)
+
+    def is_box_on_player(self, box):
+        for player in self.players:
+            if Box.area_colliding(player.get_collision_box(), box):
+                return True
+        return False
 
     # Called from outside
     def get_level_info(self):
@@ -298,7 +344,12 @@ class State:
                     break
 
 
-            
+            #CHECKS COLLISION WITH HEALTH CHEST
+            for chest in self.chests:
+                if Box.area_colliding(player.get_collision_box(), chest.box):
+                    player.hp += chest.health
+                    chest.used = True   
+
         # prepare information about new bullets
         new_bullets = []
         for id in self.unsent_bullet_ids:
@@ -348,8 +399,13 @@ class State:
 
         self.players = alive_players
 
+        if self.current_frame == self.next_chest_spawn:
+            self.add_health_chest_at_random_position()
+            self.next_chest_spawn += CHEST_SPAWN_DELAY
+
         # remove dead bullets
         self.bullets = [bullet for bullet in self.bullets if bullet.id not in removed_bullet_ids]
+        self.chests = [chest for chest in self.chests if not chest.used]
 
         if len(self.players) <= 1:
             self.end_game()
@@ -358,6 +414,7 @@ class State:
             players=self.players,
             allBullets=self.bullets,
             explosion_positions=explosion_positions,
+            allChests=self.chests,
             deaths=deaths
         )
 
@@ -377,4 +434,3 @@ class State:
 
     def end_game(self):
         pass
-

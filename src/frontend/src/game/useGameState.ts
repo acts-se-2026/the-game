@@ -39,6 +39,16 @@ function buildArenaState(data: GameStartPacket["data"] | undefined, localId: str
             heading: bullet.heading,
             ownerId : bullet.ownerId
         })),
+
+        chests: (data.chests ?? []).map((chest) => ({
+            x: chest.x,
+            y: chest.y,
+            size : {
+                x: chest.size.x,
+                y: chest.size.y
+            }
+        })),
+
     };
 }
 
@@ -47,7 +57,7 @@ export function useGameState() {
     const { socket, sendMessage } = useWsConnection();
     const { user } = useUser();
     const arena = useRef<ArenaState>(
-        buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [] }
+        buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [], chests: []}
     );
     const [matchResult, setMatchResult] = useState<MatchResult>(null);
     const [killedBy, setKilledBy] = useState<string | null>(null);

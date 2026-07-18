@@ -40,6 +40,14 @@ export interface GameStartPacket {
             heading: number;
             ownerId : string;
         }[];
+        chests?: {
+            x: number;
+            y: number;
+            size: {
+                x: number;
+                y: number;
+            };
+        }[];
         deaths?: DeathRecord[];
     }
 }
