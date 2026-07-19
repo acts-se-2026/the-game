@@ -103,7 +103,6 @@ export default function WaitingRoomPage() {
                         <p className="font-black text-white">
                             Room ID: <span className="text-blue-300">{roomId}</span>
                         </p>
-                        <span className="w-fit rounded-full bg-emerald-400/10 px-3 py-1.5 text-sm font-bold text-emerald-200">Ready to start</span>
                     </div>
                     <PlayerList players={players} />
                     <div className="mt-5 flex flex-wrap gap-3">
