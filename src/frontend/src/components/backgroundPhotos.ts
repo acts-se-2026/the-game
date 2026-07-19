@@ -1,5 +1,5 @@
 const backgroundPhotos = Object.values(import.meta.glob<string>(
-    "../../../../backround_photos/actual_jpg/*.jpg",
+    "../../backround_photos/actual_jpg/*.jpg",
     { eager: true, import: "default" },
 ));
 let selectedBackgroundPhoto: string | undefined;
