@@ -90,7 +90,6 @@ export default function LobbyPage() {
                         </button>
                     </div>
                 </div>
-            </div>
             {rooms.length === 0 ? (
                 <p className="text-slate-400">No rooms available</p>
             ) : (
