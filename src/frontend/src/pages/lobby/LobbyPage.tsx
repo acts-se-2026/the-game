@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import PageTitleTemplate from "../../components/PageTitleTemplate";
+import ArenaBackdropLayout from "../../components/ArenaBackdropLayout";
 import RoomCard, { type PublicRoom } from "./components/RoomCard";
 import { useUser } from "../../context/UserContext/useUser";
 import { backendApi } from "../../api/backend";
@@ -61,10 +62,8 @@ export default function LobbyPage() {
     }
 
     return (
-        <div className="flex flex-col items-start min-h-screen px-6 py-12">
-            <div className="w-full max-w-4xl mx-auto">
-                <PageTitleTemplate eyebrow="Lobby" title="Public rooms" description="Join an open match or create a room for your squad." />
-
+        <ArenaBackdropLayout>
+            <PageTitleTemplate eyebrow="Lobby" title="Public rooms" description="Join an open match or create a room for your squad." />
                 <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="font-bold text-slate-300">Playing as {user?.username}</p>
                     <div className="flex flex-wrap gap-3">
@@ -91,16 +90,15 @@ export default function LobbyPage() {
                         </button>
                     </div>
                 </div>
-                {rooms.length === 0 ? (
-                    <p className="text-slate-400">No rooms available</p>
-                ) : (
-                    <ul className="grid gap-4 w-full">
-                        {rooms.map((room) => (
-                            <RoomCard key={room.room_id} room={room} onJoin={handleJoinRoom} />
-                        ))}
-                    </ul>
-                )}
-            </div>
-        </div>
+            {rooms.length === 0 ? (
+                <p className="text-slate-400">No rooms available</p>
+            ) : (
+                <ul className="grid w-full gap-4">
+                    {rooms.map((room) => (
+                        <RoomCard key={room.room_id} room={room} onJoin={handleJoinRoom} />
+                    ))}
+                </ul>
+            )}
+        </ArenaBackdropLayout>
     );
 }
