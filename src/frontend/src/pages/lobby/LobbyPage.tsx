@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import PageTitleTemplate from "../../components/PageTitleTemplate";
 import RoomCard, { type PublicRoom } from "./components/RoomCard";
@@ -18,22 +18,35 @@ export default function LobbyPage() {
     const navigate = useNavigate();
     const { user } = useUser();
     const [rooms, setRooms] = useState<PublicRoom[]>([]);
+    const [isRefreshing, setIsRefreshing] = useState(true);
 
-    useEffect(() => {
+    const fetchRooms = useCallback((silent = false) => {
+        const startTime = Date.now();
+
         backendApi.get<FetchRoomsResponse>("/api/rooms").then((response) => {
-            if (!Array.isArray(response.data.rooms)) {
-                setRooms([]);
-                return;
-            }
-
-            setRooms(response.data.rooms.map((room) => ({
-                ...room,
-                players: Array.isArray(room.players) ? room.players : [],
-            })));
+            const fetchedRooms = response.data.rooms || [];
+            setRooms(fetchedRooms.map((room) => ({ ...room })));
         }).catch((error) => {
             console.error("Failed to fetch rooms:", error);
+        }).finally(() => {
+            const elapsed = Date.now() - startTime;
+            const minDelay = 500;
+            const remaining = minDelay - elapsed;
+            
+            // Make sure the refresh indicator is visible for at least 500ms to avoid flickering
+            if (remaining > 0 && !silent) {
+                setTimeout(() => setIsRefreshing(false), remaining);
+            } else {
+                setIsRefreshing(false);
+            }
         });
     }, []);
+
+    useEffect(() => {
+        fetchRooms();
+        const interval = setInterval(() => fetchRooms(true), 4000);
+        return () => clearInterval(interval);
+    }, [fetchRooms]);
 
     const handleJoinRoom = (roomId: string) => {
         navigate(`/rooms/${roomId}`);
@@ -57,6 +70,18 @@ export default function LobbyPage() {
                     <div className="flex flex-wrap gap-3">
                         <LogoutButton />
                         
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsRefreshing(true);
+                                fetchRooms();
+                            }}
+                            disabled={isRefreshing}
+                            className="rounded-xl bg-slate-700 px-4 py-2.5 font-black text-white transition hover:bg-slate-600 disabled:opacity-50"
+                        >
+                            {isRefreshing ? "Refreshing..." : "Refresh"}
+                        </button>
+
                         <button
                             type="button"
                             onClick={handleCreateRoom}
