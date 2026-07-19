@@ -45,7 +45,7 @@ def test_player_to_dict():
 
 
 def test_bullet_to_dict_heading():
-    bullet = Bullet(Vec2(0, 0), Vec2(0, 1), "owner")
+    bullet = Bullet(Vec2(0, 0), Vec2(0, 1), "owner", 0)
 
     result = bullet.to_dict()
     assert result["x"] == 0
@@ -54,8 +54,13 @@ def test_bullet_to_dict_heading():
 
 
 def test_bullet_ids_are_unique():
-    first = Bullet(Vec2(0, 0), Vec2(1, 0), "a")
-    second = Bullet(Vec2(0, 0), Vec2(1, 0), "a")
+    state = State()
+    state.add_player(Player('a', Vec2(100, 100)))
+    state.add_player(Player('b', Vec2(300, 100)))
+    state.try_shoot_player_bullet('a')
+    state.try_shoot_player_bullet('b')
+    first = state.bullets[0].id
+    second = state.bullets[1].id
 
     assert second.id == first.id + 1
 
