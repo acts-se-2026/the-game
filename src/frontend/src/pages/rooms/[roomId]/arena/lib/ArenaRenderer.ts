@@ -22,16 +22,16 @@ interface Particle {
 
 export class ArenaRenderer {
     private world: Container;
-    private players: Map<string, PlayerView> = new Map();
-    private obstacleLayer: Graphics;
-    private chestLayer: Graphics;
-    private bulletLayer: Graphics;
-    private lastState: ArenaState | null = null;
-    private lastObstacles: Obstacle[] | null = null;
-    private lastChests: Chest[] | null = null;
-    private particles: Particle[] = [];
+private players: Map<string, PlayerView> = new Map();
+     private obstacleLayer: Graphics;
+     private chestLayer: Graphics;
+     private bulletLayer: Graphics;
+     private lastState: ArenaState | null null = null;
+     private lastObstacles: Obstacle[] | null null = null;
+     private lastChests: Chest[] | null null = null;
+     private particles: Particle[] = [];
 
-    constructor(private app: Application) {
+     constructor(private app: Application) {
         this.world = new Container();
         this.world.sortableChildren = true;
         app.stage.addChild(this.world);
@@ -61,7 +61,8 @@ export class ArenaRenderer {
         this.world.addChild(grid);
     }
 
-    public syncState(state: ArenaState, self_id?: string) {
+    public syncState(state: ArenaState, self_id?: string, localAimHeading?: number) {
+        this.selfId = self_id || null;
         if (state !== this.lastState) {
             if (state.obstacles !== this.lastObstacles) {
                 this.syncObstacles(state.obstacles);
@@ -82,7 +83,37 @@ export class ArenaRenderer {
             }
             this.lastState = state;
         }
+
+        if (self_id && localAimHeading !== undefined) {
+            this.targetHeadings.set(self_id, localAimHeading);
+        }
+
+        this.updateRotations(this.app.ticker.deltaTime);
         this.updateParticles(this.app.ticker.deltaTime);
+    }
+
+    private lerpAngle(start: number, end: number, amount: number) {
+        let difference = end - start;
+        
+        // Make sure we take the shortest path around the circle
+        while (difference < -Math.PI) difference += Math.PI * 2;
+        while (difference > Math.PI) difference -= Math.PI * 2;
+
+        return start + difference * amount;
+    }
+
+    private updateRotations(dt: number) {
+        for (const [id, container] of this.players.entries()) {
+            const arrow = container.getChildByName("arrow") as Graphics;
+            if (!arrow) continue;
+
+            const target = this.targetHeadings.get(id);
+            if (target === undefined) continue;
+
+            const isLocal = id === this.selfId;
+            const alpha = isLocal ? 0.92 * dt : 0.6 * dt; // Make local player rotation faster for responsiveness
+            arrow.rotation = this.lerpAngle(arrow.rotation, target, Math.min(1, alpha)); // We limit alpha to 1 to avoid overshooting
+        }
     }
 
     private spawnExplosion(x: number, y: number, colorStr: string) {
@@ -193,9 +224,9 @@ export class ArenaRenderer {
         }
 
         for (const player of data) {
-            let view = this.players.get(player.id);
-            if (!view) {
-                const container = new Container();
+              let view = this.players.get(player.id);
+                   if (!view) {
+                       const container = new Container();
                 container.zIndex = 20;
                 const body = new Graphics();
                 body.name = "body";
@@ -226,21 +257,24 @@ export class ArenaRenderer {
                 this.players.set(player.id, view);
             }
 
-            if (view.container.x !== player.x) view.container.x = player.x;
-            if (view.container.y !== player.y) view.container.y = player.y;
-            if (view.arrow.rotation !== player.heading) view.arrow.rotation = player.heading;
-            if (view.username.text !== player.username) view.username.text = player.username;
-
-            const appearanceKey = `${player.color}:${player.isLocal === true}`;
-            if (view.appearanceKey !== appearanceKey) {
-                view.body.clear()
-                    .circle(0, 0, PLAYER_RADIUS + (player.isLocal ? 5 : 3)).fill({
-                        color: player.isLocal ? 0x60a5fa : 0xffffff,
-                        alpha: player.isLocal ? 0.22 : 0.1,
-                    })
-                    .circle(0, 0, PLAYER_RADIUS).fill({ color: player.color }).stroke({ color: 0xf8fafc, width: 2 });
-                view.appearanceKey = appearanceKey;
-            }
+                if (view.container.x !== player.x) view.container.x = player.x;
+                     if (view.container.y !== player.y) view.container.y = player.y;
+                     if (view.arrow.rotation !== player.heading) view.arrow.rotation = player.heading;
+                     if (view.username.text !== player.username) view.username.text = player.username;
+                     const appearanceKey = `${player.color}:${player.isLocal === true}`;
+                     if (view.appearanceKey !== appearanceKey) {
+                         view.body
+                             .clear()
+                             .circle(0, 0, PLAYER_RADIUS + (player.isLocal ? 5 : 3))
+                             .fill({
+                                 color: player.isLocal ? 0x60a5fa : 0xffffff,
+                                 alpha: player.isLocal ? 0.22 : 0.1,
+                             })
+                             .circle(0, 0, PLAYER_RADIUS)
+                             .fill({ color: player.color })
+                             .stroke({ color: 0xf8fafc, width: 2 });
+                         view.appearanceKey = appearanceKey;
+               }
         }
     }
 

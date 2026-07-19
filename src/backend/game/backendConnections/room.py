@@ -45,7 +45,7 @@ class Room:
         self.gameState = None
     
     async def gameLoop(self):
-        tick_rate = 1 / 60  # 60 ticks per second
+        tick_rate = 1 / 30  # 30 ticks per second
         while self.isRunning:
             changes = self.gameState.step_frame()
             asyncio.create_task(self.broadcast({"type": "state_diff", "data": changes.to_dict()}))
