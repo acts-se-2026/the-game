@@ -129,17 +129,14 @@ class Player:
 
 
 class Bullet:
-    next_id = 0
-
-    def __init__(self, pos: Vec2, movement_dir: Vec2, owner_uuid: str, damage=BULLET_DAMAGE):
+    def __init__(self, pos: Vec2, movement_dir: Vec2, owner_uuid: str, id: int, damage=BULLET_DAMAGE):
         self.pos = pos
         self.movement_dir = movement_dir
         self.owner_uuid = owner_uuid
 
         self.damage = damage
 
-        self.id = Bullet.next_id
-        Bullet.next_id += 1
+        self.id = id
 
     def get_collision_box(self):
         return Box(self.pos - BULLET_SIZE / 2, BULLET_SIZE)
@@ -189,6 +186,7 @@ class State:
     def __init__(self, obstacles=[]):
         self.current_frame = 0
         self.bullets = []
+        self.next_bullet_id = 0
         
         self.unsent_bullet_ids = []
         
@@ -196,12 +194,16 @@ class State:
         self.chests = [] #List of Chest Class
         self.players = []
 
-        self.next_chest_spawn = CHEST_SPAWN_DELAY #frame number
+        self.next_chest_spawn = -1 # frame number when the chest gets created, chests disabled by default
+
+    def enable_random_chests(self):
+        self.next_chest_spawn = self.current_frame + CHEST_SPAWN_DELAY
 
     # Creates a State that's ready to run a real game
     def init_populated(player_uuids: list[str]):
         s = State(State.obstacle_generator())
         s.add_players_at_random_positions(player_uuids)
+        s.enable_random_chests()
         return s
 
     # Generates obstacles in a box grid
@@ -346,13 +348,17 @@ class State:
                 player.hp = 0
                 return
 
+    def get_unique_bullet_id(self):
+        self.next_bullet_id += 1
+        return self.next_bullet_id - 1
+
     # Called from outside
     def try_shoot_player_bullet(self, player_uuid: str):
         print(f"Player {player_uuid} is trying to shoot a bullet at frame {self.current_frame}")
         for player in self.players:
             if player.uuid == player_uuid and self.current_frame - player.last_shot_time > SHOOTING_DELAY:
                 direction = player.get_shooting_dir()
-                self.bullets.append(Bullet(player.pos + direction * CANNON_END_RADIUS, direction, player.uuid, player.damage))
+                self.bullets.append(Bullet(player.pos + direction * CANNON_END_RADIUS, direction, player.uuid, self.get_unique_bullet_id(), player.damage))
                 self.unsent_bullet_ids.append(self.bullets[-1].id)
                 player.last_shot_time = self.current_frame
 
