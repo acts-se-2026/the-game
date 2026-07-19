@@ -24,14 +24,14 @@ BULLET_SIZE = Vec2(5, 5)
 BULLET_DAMAGE = 10
 
 CHEST_SIZE = Vec2(20, 20)
-CHEST_SPAWN_DELAY = 200
+CHEST_SPAWN_DELAY = 400
 
 #-CHEST EFFECTS-#
 CHEST_HEALTH = 20
 CHEST_SPEED = PLAYER_SPEED * 2
 CHEST_STRENGTH = PLAYER_DAMAGE * 3
 
-EFFECT_LENGTH = 800
+EFFECT_LENGTH = 500
 
 
 class Chest:
@@ -111,20 +111,21 @@ class Player:
             case "health":
                 self.hp = min(100, self.hp+CHEST_HEALTH)
             case "speed":
-                self.speed = CHEST_SPEED
+                self.speed = self.speed+5
             case "strength":
-                self.damage = CHEST_STRENGTH
+                self.damage = self.damage+10
         
         if effect[0] != "health":
             self.effects.append(effect)
     
     def remove_effect(self, effect: tuple[str, int]):
         self.effects.remove(effect)
+
         match effect[0]:
             case "speed":
-                self.speed = PLAYER_SPEED
+                self.speed = self.speed-5
             case "strength":
-                self.damage = PLAYER_DAMAGE
+                self.damage = self.damage-10
 
 
 class Bullet:
@@ -148,7 +149,8 @@ class Bullet:
             "x": self.pos.x,
             "y": self.pos.y,
             "heading": math.atan2(self.movement_dir.y, self.movement_dir.x),
-            "ownerId": self.owner_uuid
+            "ownerId": self.owner_uuid,
+            "damage": self.damage
         }
 
 
