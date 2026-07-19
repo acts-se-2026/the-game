@@ -18,6 +18,7 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
     } | null>(null);
 
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const localAimHeadingRef = useRef<number | undefined>(undefined);
 
     // We use refs for callbacks so we don't have to restart Pixi when they change
     const onAimRef = useRef(onAim);
@@ -54,7 +55,7 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
         if (!pixi) return;
 
         const tick = () => {
-            pixi.renderer.syncState(stateRef.current, user?.session_id);
+            pixi.renderer.syncState(stateRef.current, user?.session_id, localAimHeadingRef.current);
         };
         pixi.app.ticker.add(tick);
         return () => {
@@ -97,7 +98,11 @@ export default function ArenaCanvas({ stateRef, onAim, onShoot }: ArenaCanvasPro
                 // Set up mouse/touch events
                 app.stage.eventMode = "static";
                 app.stage.hitArea = app.screen;
-                app.stage.on("pointermove", (event) => onAimRef.current?.(event.global));
+                app.stage.on("pointermove", (event) => {
+                    const pos = event.global;
+                    onAimRef.current?.(pos);
+                    localAimHeadingRef.current = Math.atan2(pos.y - ARENA_HEIGHT / 2, pos.x - ARENA_WIDTH / 2);
+                });
                 app.stage.on("pointertap", () => onShootRef.current?.());
 
                 // Add the canvas to our HTML div
