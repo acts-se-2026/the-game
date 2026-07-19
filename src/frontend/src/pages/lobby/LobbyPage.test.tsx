@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, type MockedFunction } from "vitest";
 import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import LobbyPage from "./LobbyPage";
 import { backendApi } from "../../api/backend";
@@ -21,8 +21,10 @@ vi.mock("react-router", () => ({
 
 describe("LobbyPage", () => {
     beforeEach(() => {
-        (useUser as any).mockReturnValue({ user: { username: "testuser" } });
-        (backendApi.get as any).mockResolvedValue({ data: { rooms: [] } });
+        (useUser as MockedFunction<typeof useUser>).mockReturnValue({ 
+            user: { username: "testUser" } 
+        } as unknown as ReturnType<typeof useUser>);
+        (backendApi.get as MockedFunction<typeof backendApi.get>).mockResolvedValue({ data: { rooms: [] } });
     });
 
     afterEach(() => {
@@ -33,7 +35,7 @@ describe("LobbyPage", () => {
     it("renders and fetches rooms on mount", async () => {
         render(<LobbyPage />);
         expect(backendApi.get).toHaveBeenCalledWith("/api/rooms");
-        expect(screen.getByText("Playing as testuser")).toBeTruthy();
+        expect(screen.getByText("Playing as testUser")).toBeTruthy();
     });
 
     it("refreshes rooms every 4 seconds", async () => {

@@ -18,10 +18,9 @@ export default function LobbyPage() {
     const navigate = useNavigate();
     const { user } = useUser();
     const [rooms, setRooms] = useState<PublicRoom[]>([]);
-    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(true);
 
     const fetchRooms = useCallback((silent = false) => {
-        if (!silent) setIsRefreshing(true);
         const startTime = Date.now();
 
         backendApi.get<FetchRoomsResponse>("/api/rooms").then((response) => {
@@ -30,14 +29,12 @@ export default function LobbyPage() {
         }).catch((error) => {
             console.error("Failed to fetch rooms:", error);
         }).finally(() => {
-            if (silent) return;
-            
             const elapsed = Date.now() - startTime;
             const minDelay = 500;
             const remaining = minDelay - elapsed;
             
             // Make sure the refresh indicator is visible for at least 500ms to avoid flickering
-            if (remaining > 0) {
+            if (remaining > 0 && !silent) {
                 setTimeout(() => setIsRefreshing(false), remaining);
             } else {
                 setIsRefreshing(false);
@@ -75,7 +72,10 @@ export default function LobbyPage() {
                         
                         <button
                             type="button"
-                            onClick={() => fetchRooms()}
+                            onClick={() => {
+                                setIsRefreshing(true);
+                                fetchRooms();
+                            }}
                             disabled={isRefreshing}
                             className="rounded-xl bg-slate-700 px-4 py-2.5 font-black text-white transition hover:bg-slate-600 disabled:opacity-50"
                         >
