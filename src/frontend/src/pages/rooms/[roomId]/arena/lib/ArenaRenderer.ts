@@ -22,16 +22,20 @@ interface Particle {
 
 export class ArenaRenderer {
     private world: Container;
-private players: Map<string, PlayerView> = new Map();
-     private obstacleLayer: Graphics;
-     private chestLayer: Graphics;
-     private bulletLayer: Graphics;
-     private lastState: ArenaState | null null = null;
-     private lastObstacles: Obstacle[] | null null = null;
-     private lastChests: Chest[] | null null = null;
-     private particles: Particle[] = [];
+    private players: Map<string, PlayerView> = new Map();
+    private obstacleLayer: Graphics;
+    private chestLayer: Graphics;
+    private bulletLayer: Graphics;
+    private lastState: ArenaState | null = null;
+    private lastObstacles: Obstacle[] | null = null;
+    private lastChests: Chest[] | null = null;
+    private particles: Particle[] = [];
+    private targetHeadings: Map<string, number> = new Map();
+    private selfId: string | null = null;
+    private app: Application;
 
-     constructor(private app: Application) {
+    constructor(app: Application) {
+        this.app = app;
         this.world = new Container();
         this.world.sortableChildren = true;
         app.stage.addChild(this.world);
@@ -103,16 +107,13 @@ private players: Map<string, PlayerView> = new Map();
     }
 
     private updateRotations(dt: number) {
-        for (const [id, container] of this.players.entries()) {
-            const arrow = container.getChildByName("arrow") as Graphics;
-            if (!arrow) continue;
-
+        for (const [id, view] of this.players.entries()) {
             const target = this.targetHeadings.get(id);
             if (target === undefined) continue;
 
             const isLocal = id === this.selfId;
             const alpha = isLocal ? 0.92 * dt : 0.6 * dt; // Make local player rotation faster for responsiveness
-            arrow.rotation = this.lerpAngle(arrow.rotation, target, Math.min(1, alpha)); // We limit alpha to 1 to avoid overshooting
+            view.arrow.rotation = this.lerpAngle(view.arrow.rotation, target, Math.min(1, alpha)); // We limit alpha to 1 to avoid overshooting
         }
     }
 
@@ -292,6 +293,8 @@ private players: Map<string, PlayerView> = new Map();
 
     public destroy() {
         this.players.clear();
+        this.targetHeadings.clear();
+        this.selfId = null;
         this.lastState = null;
         this.lastObstacles = null;
         this.lastChests = null;
