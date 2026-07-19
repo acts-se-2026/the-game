@@ -15,6 +15,7 @@ export default function ArenaPage() {
     const [isLossOverlayDismissed, setIsLossOverlayDismissed] = useState(false);
 
     const hasArenaState = Boolean(location.state?.arenaState);
+    const isSpectating = matchResult === "lose" && isLossOverlayDismissed;
 
     useEffect(() => {
         if ((!hasArenaState || !isConnected) && !hasRedirectedRef.current) {
@@ -53,7 +54,7 @@ export default function ArenaPage() {
                 </header>
 
                 <div className="relative flex min-h-0 flex-1 items-center justify-center">
-                    <ArenaCanvas stateRef={arena} onAim={handleAim} onShoot={handleShoot} />
+                    <ArenaCanvas stateRef={arena} onAim={handleAim} onShoot={isSpectating ? undefined : handleShoot} />
                     <MatchResultOverlay
                         result={matchResult === "lose" && isLossOverlayDismissed ? null : matchResult}
                         killedBy={killedBy}
