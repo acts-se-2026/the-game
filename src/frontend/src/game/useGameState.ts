@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { type ArenaState } from "./types";
+import { type ArenaState, ARENA_WIDTH, ARENA_HEIGHT } from "./types";
 import { useKeyboardMovement } from "./useKeyboardMovement";
 import { useWsConnection } from "../context/WsContext/useWsConnection";
 import { useUser } from "../context/UserContext/useUser";
@@ -7,57 +7,25 @@ import type { GameStartPacket, WsUnknownPacket } from "../context/WsContext/type
 import { useLocation } from "react-router";
 import { processNewState } from "./processNewState";
 import { determineMatchResult, findKillerName, type MatchResult } from "./matchResult";
+import { playSfx, preloadSfx } from "./sfx";
+import { didLocalPlayerTakeDamage, getResultSfx } from "./sfxTriggers";
 
-const ENEMY_COLORS = ["#fb7185", "#fbbf24", "#34d399", "#a78bfa", "#f472b6"];
-
-function buildArenaState(data: GameStartPacket["data"] | undefined, localId: string | undefined): ArenaState | null {
-    if (!data || !Array.isArray(data.players)) return null;
-
-    let enemyIndex = 0;
-    return {
-        obstacles: (data.obstacles ?? []).map((obs) => ({
-            x: obs.x,
-            y: obs.y,
-            size: obs.size,
-        })),
-        players: data.players.map((player) => {
-            const isLocal = localId != null && player.id === localId;
-            return {
-                id: player.id,
-                username: player.username || player.id,
-                x: player.x,
-                y: player.y,
-                hp: player.hp,
-                heading: player.heading,
-                isLocal,
-                color: isLocal ? "#60a5fa" : ENEMY_COLORS[enemyIndex++ % ENEMY_COLORS.length],
-            };
-        }),
-        bullets: (data.bullets ?? []).map((bullet) => ({
-            x: bullet.x,
-            y: bullet.y,
-            heading: bullet.heading,
-            ownerId : bullet.ownerId
-        })),
-
-        chests: (data.chests ?? []).map((chest) => ({
-            x: chest.x,
-            y: chest.y,
-            size : {
-                x: chest.size.x,
-                y: chest.size.y
-            }
-        })),
-
-    };
-}
+const EMPTY_ARENA: ArenaState = {
+    obstacles: [],
+    players: [],
+    bullets: [],
+    chests: [],
+    explosion_positions: []
+};
 
 export function useGameState() {
     const location = useLocation();
     const { socket, sendMessage } = useWsConnection();
     const { user } = useUser();
     const arena = useRef<ArenaState>(
-        buildArenaState(location.state?.arenaState, user?.session_id) ?? { obstacles: [], players: [], bullets: [], chests: []}
+        location.state?.arenaState
+            ? processNewState(location.state.arenaState, EMPTY_ARENA, user?.session_id)
+            : EMPTY_ARENA
     );
     const [matchResult, setMatchResult] = useState<MatchResult>(null);
     const [killedBy, setKilledBy] = useState<string | null>(null);
@@ -67,6 +35,10 @@ export function useGameState() {
     const lastAimSentAt = useRef(0);
     const lastAimPos = useRef<{ x: number; y: number } | null>(null);
     const lastSentHeading = useRef<number | null>(null);
+
+    useEffect(() => {
+        preloadSfx();
+    }, []);
 
     useEffect(() => {
         const currentSocket = socket.current;
@@ -79,7 +51,18 @@ export function useGameState() {
                 case "state_diff": {
                     const arenaState = packet.data as GameStartPacket["data"];
                     const previousPlayers = arena.current.players;
-                    arena.current = processNewState(arenaState, arena.current);
+                    arena.current = processNewState(arenaState, arena.current, user?.session_id);
+                  
+                    const localPlayerTookDamage = didLocalPlayerTakeDamage(
+                        previousPlayers,
+                        arenaState.players,
+                        user?.session_id
+                    );
+
+                    if (localPlayerTookDamage) {
+                        playSfx("bullethit");
+                    }
+
                     setKilledBy((currentKiller) =>
                         currentKiller ?? findKillerName(arenaState.deaths ?? [], previousPlayers, user?.session_id)
                     );
@@ -115,6 +98,15 @@ export function useGameState() {
         sendMessage("player_move", { x: movement.x, y: movement.y });
     }, [movement, sendMessage]);
 
+    useEffect(() => {
+        const resultSfx = getResultSfx(matchResult);
+        if (!resultSfx) {
+            return;
+        }
+
+        playSfx(resultSfx);
+    }, [matchResult]);
+
     const sendAim = useCallback(() => {
         const pos = lastAimPos.current;
         const localPlayer = arena.current.players.find(p => p.isLocal);
@@ -122,7 +114,7 @@ export function useGameState() {
         if (!pos || !playerPos) return;
 
         // Always aim towards the mouse cursor
-        const heading = Math.atan2(pos.y - playerPos.y, pos.x - playerPos.x);
+        const heading = Math.atan2(pos.y - ARENA_HEIGHT / 2, pos.x - ARENA_WIDTH / 2);
 
         // Don't send if the aim direction did not change
         if (lastSentHeading.current === heading) return;
@@ -152,6 +144,7 @@ export function useGameState() {
     }, [sendAim]);
 
     const handleShoot = useCallback(() => {
+        playSfx("gunshot");
         sendMessage("player_shoot");
     }, [sendMessage]);
 

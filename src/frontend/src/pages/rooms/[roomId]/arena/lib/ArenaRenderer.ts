@@ -12,6 +12,14 @@ type PlayerView = {
     appearanceKey: string;
 };
 
+interface Particle {
+    graphics: Graphics;
+    vx: number;
+    vy: number;
+    life: number;
+    maxLife: number;
+}
+
 export class ArenaRenderer {
     private world: Container;
     private players: Map<string, PlayerView> = new Map();
@@ -21,8 +29,9 @@ export class ArenaRenderer {
     private lastState: ArenaState | null = null;
     private lastObstacles: Obstacle[] | null = null;
     private lastChests: Chest[] | null = null;
+    private particles: Particle[] = [];
 
-    constructor(app: Application) {
+    constructor(private app: Application) {
         this.world = new Container();
         this.world.sortableChildren = true;
         app.stage.addChild(this.world);
@@ -36,6 +45,7 @@ export class ArenaRenderer {
         this.bulletLayer.zIndex = 30;
         this.world.addChild(this.obstacleLayer, this.chestLayer, this.bulletLayer);
     }
+
 
     private initBackground() {
         const grid = new Graphics();
@@ -51,20 +61,87 @@ export class ArenaRenderer {
         this.world.addChild(grid);
     }
 
-    public syncState(state: ArenaState) {
-        if (state === this.lastState) return;
+    public syncState(state: ArenaState, self_id?: string) {
+        if (state !== this.lastState) {
+            if (state.obstacles !== this.lastObstacles) {
+                this.syncObstacles(state.obstacles);
+                this.lastObstacles = state.obstacles;
+            }
+            this.syncPlayers(state.players);
+            this.syncBullets(state.bullets, state.players);
+            if (state.chests !== this.lastChests && !this.sameChests(state.chests, this.lastChests)) {
+                this.syncChests(state.chests);
+            }
+            this.lastChests = state.chests;
+            if (self_id) {
+                this.syncCamera(state.players, self_id);
+            }
 
-        if (state.obstacles !== this.lastObstacles) {
-            this.syncObstacles(state.obstacles);
-            this.lastObstacles = state.obstacles;
+            if (state.explosion_positions && state.explosion_positions.length > 0) {
+                state.explosion_positions.forEach(pos => this.spawnExplosion(pos.x, pos.y, pos.color));
+            }
+            this.lastState = state;
         }
-        this.syncPlayers(state.players);
-        this.syncBullets(state.bullets, state.players);
-        if (state.chests !== this.lastChests && !this.sameChests(state.chests, this.lastChests)) {
-            this.syncChests(state.chests);
+        this.updateParticles(this.app.ticker.deltaTime);
+    }
+
+    private spawnExplosion(x: number, y: number, colorStr: string) {
+        const particleCount = 20;
+        const color = Number(colorStr.replace("#", "0x"));
+        for (let i = 0; i < particleCount; i++) {
+            const graphics = new Graphics();
+            graphics.zIndex = 40;
+
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2 + Math.random() * 4;
+
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+
+            const life = 30 + Math.random() * 30;
+
+            graphics.circle(0, 0, 3 + Math.random() * 3)
+                .fill({ color, alpha: 0.8 });
+
+            graphics.x = x;
+            graphics.y = y;
+
+            this.world.addChild(graphics);
+            this.particles.push({
+                graphics,
+                vx,
+                vy,
+                life,
+                maxLife: life
+            });
         }
-        this.lastChests = state.chests;
-        this.lastState = state;
+    }
+
+    private updateParticles(dt: number) {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.life -= dt;
+
+            if (p.life <= 0) {
+                p.graphics.destroy(true);
+                this.particles.splice(i, 1);
+                continue;
+            }
+
+            p.graphics.x += p.vx * dt;
+            p.graphics.y += p.vy * dt;
+            p.graphics.alpha = p.life / p.maxLife;
+            p.graphics.scale.set(p.life / p.maxLife);
+        }
+    }
+
+    private syncCamera(players: Player[], self_id: string) {
+        const self_player = players.find(p => p.id === self_id)
+        if (!self_player) {
+            return;
+        }
+        this.world.x = -self_player.x + this.app.screen.width / 2
+        this.world.y = -self_player.y + this.app.screen.height / 2
     }
 
     private syncBullets(bullets: Bullet[], players: Player[]) {
@@ -72,8 +149,9 @@ export class ArenaRenderer {
         this.bulletLayer.clear();
 
         for (const bullet of bullets) {
+            const radius = Math.floor(Math.sqrt(bullet.damage * 3) + 1);
             this.bulletLayer
-                .circle(bullet.x, bullet.y, 5)
+                .circle(bullet.x, bullet.y, radius)
                 .fill({ color: playerColors.get(bullet.ownerId) ?? 0xff0000 });
         }
     }
@@ -81,9 +159,16 @@ export class ArenaRenderer {
     private syncChests(data: Chest[]) {
         this.chestLayer.clear();
         for (const chest of data) {
+            let chestColor = 0x3fed13;
+            if (chest.effect === "speed") {
+                chestColor = 0xede213;
+            } else if (chest.effect === "strength") {
+                chestColor = 0xeb220c;
+            }
+
             this.chestLayer
                 .rect(chest.x, chest.y, chest.size.x, chest.size.y)
-                .fill({ color: 0x19bf45 });
+                .fill({ color: chestColor });
         }
     }
 
@@ -166,7 +251,8 @@ export class ArenaRenderer {
             return chest.x === oldChest.x
                 && chest.y === oldChest.y
                 && chest.size.x === oldChest.size.x
-                && chest.size.y === oldChest.size.y;
+                && chest.size.y === oldChest.size.y
+                && chest.effect === oldChest.effect;
         });
     }
 
@@ -175,5 +261,7 @@ export class ArenaRenderer {
         this.lastState = null;
         this.lastObstacles = null;
         this.lastChests = null;
+        this.particles.forEach(p => p.graphics.destroy(true));
+        this.particles = [];
     }
 }

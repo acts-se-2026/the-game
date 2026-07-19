@@ -27,6 +27,7 @@ export type Bullet = {
   y: number
   heading: number
   ownerId: string
+  damage: number
 }
 
 export type Chest = {
@@ -36,6 +37,7 @@ export type Chest = {
     x: number
     y: number
   }
+  effect: string
 }
 
 export type ArenaState = {
@@ -43,4 +45,5 @@ export type ArenaState = {
   players: Player[]
   bullets: Bullet[]
   chests: Chest[]
+  explosion_positions?: { x: number; y: number; color: string }[]
 }
