@@ -25,14 +25,14 @@ BULLET_DAMAGE = 10
 
 ENABLE_CHESTS = False
 CHEST_SIZE = Vec2(20, 20)
-CHEST_SPAWN_DELAY = 200
+CHEST_SPAWN_DELAY = 400
 
 #-CHEST EFFECTS-#
 CHEST_HEALTH = 20
 CHEST_SPEED = PLAYER_SPEED * 2
 CHEST_STRENGTH = PLAYER_DAMAGE * 3
 
-EFFECT_LENGTH = 400
+EFFECT_LENGTH = 250
 
 
 class Chest:
@@ -112,20 +112,21 @@ class Player:
             case "health":
                 self.hp = min(100, self.hp+CHEST_HEALTH)
             case "speed":
-                self.speed = CHEST_SPEED
+                self.speed = self.speed+5
             case "strength":
-                self.damage = CHEST_STRENGTH
+                self.damage = self.damage+10
         
         if effect[0] != "health":
             self.effects.append(effect)
     
     def remove_effect(self, effect: tuple[str, int]):
         self.effects.remove(effect)
+
         match effect[0]:
             case "speed":
-                self.speed = PLAYER_SPEED
+                self.speed = self.speed-5
             case "strength":
-                self.damage = PLAYER_DAMAGE
+                self.damage = self.damage-10
 
 
 class Bullet:
