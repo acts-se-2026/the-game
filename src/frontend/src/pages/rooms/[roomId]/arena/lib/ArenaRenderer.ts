@@ -19,8 +19,10 @@ export class ArenaRenderer {
     private obstacles: Map<string, Graphics> = new Map();
     private bullets: Map<string, Graphics> = new Map();
     private chests: Map<string, Graphics> = new Map();
+    private targetHeadings: Map<string, number> = new Map();
     private particles: Particle[] = [];
     private lastState: ArenaState | null = null;
+    private selfId: string | null = null;
 
     constructor(app: Application) {
         this.app = app;
@@ -45,7 +47,8 @@ export class ArenaRenderer {
         this.world.addChild(grid);
     }
 
-    public syncState(state: ArenaState, self_id?: string) {
+    public syncState(state: ArenaState, self_id?: string, localAimHeading?: number) {
+        this.selfId = self_id || null;
         if (state !== this.lastState) {
             this.syncObstacles(state.obstacles);
             this.syncPlayers(state.players);
@@ -60,7 +63,37 @@ export class ArenaRenderer {
             }
             this.lastState = state;
         }
+
+        if (self_id && localAimHeading !== undefined) {
+            this.targetHeadings.set(self_id, localAimHeading);
+        }
+
+        this.updateRotations(this.app.ticker.deltaTime);
         this.updateParticles(this.app.ticker.deltaTime);
+    }
+
+    private lerpAngle(start: number, end: number, amount: number) {
+        let difference = end - start;
+        
+        // Make sure we take the shortest path around the circle
+        while (difference < -Math.PI) difference += Math.PI * 2;
+        while (difference > Math.PI) difference -= Math.PI * 2;
+
+        return start + difference * amount;
+    }
+
+    private updateRotations(dt: number) {
+        for (const [id, container] of this.players.entries()) {
+            const arrow = container.getChildByName("arrow") as Graphics;
+            if (!arrow) continue;
+
+            const target = this.targetHeadings.get(id);
+            if (target === undefined) continue;
+
+            const isLocal = id === this.selfId;
+            const alpha = isLocal ? 0.92 * dt : 0.6 * dt; // Make local player rotation faster for responsiveness
+            arrow.rotation = this.lerpAngle(arrow.rotation, target, Math.min(1, alpha)); // We limit alpha to 1 to avoid overshooting
+        }
     }
 
     private spawnExplosion(x: number, y: number, colorStr: string) {
@@ -210,6 +243,7 @@ export class ArenaRenderer {
 
         for (const player of data) {
             let container = this.players.get(player.id);
+            const isNew = !container;
             if (!container) {
                 container = new Container();
                 container.zIndex = 20;
@@ -257,7 +291,10 @@ export class ArenaRenderer {
             username.text = player.username;
 
             const arrow = container.getChildByName("arrow") as Graphics;
-            arrow.rotation = player.heading;
+            if (isNew) {
+                arrow.rotation = player.heading;
+            }
+            this.targetHeadings.set(player.id, player.heading);
         }
     }
 
