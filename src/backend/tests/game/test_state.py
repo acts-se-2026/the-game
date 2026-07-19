@@ -57,6 +57,9 @@ def test_bullet_ids_are_unique():
     state = State()
     state.add_player(Player('a', Vec2(100, 100)))
     state.add_player(Player('b', Vec2(300, 100)))
+
+    state.current_frame = SHOOTING_DELAY + 1
+
     state.try_shoot_player_bullet('a')
     state.try_shoot_player_bullet('b')
     first = state.bullets[0].id
