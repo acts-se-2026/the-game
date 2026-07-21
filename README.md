@@ -1,6 +1,6 @@
-# the-game
-Multiplayer Network Game
+# Kill or Die
+Play with your friends online
 
-## Backend 
-- Look at src/backend/README.md to see how to setup backend
-- you need uv (install it :) )
+Keyboard and mouse/touchpad required
+
+https://killordie.mooo.com
