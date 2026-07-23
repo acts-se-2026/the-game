@@ -3,6 +3,11 @@ import type { ArenaState } from "./types";
 
 const ENEMY_COLORS = ["#fb7185", "#fbbf24", "#34d399", "#a78bfa", "#f472b6"];
 
+/**
+ * Merge an incoming authoritative game state into the current client state.
+ * - Preserves player colors and local-player highlighting
+ * - Maps explosion positions to player colors for particles
+ */
 export const processNewState = (newState: GameStartPacket["data"], currentState: ArenaState, localId?: string): ArenaState => {
     const usedColors = new Set(currentState.players.map(p => p.color));
 

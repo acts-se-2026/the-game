@@ -13,6 +13,12 @@ class LoginRequest(BaseModel):
 
 @authRouter.post("/login")
 def loginEndpoint(body: LoginRequest, response: Response):
+    """Issue a session cookie for the provided username.
+
+    Sets the signed JWT in a cookie named by `config.JWT_COOKIE_NAME` with attributes
+    controlled by environment configuration. The response body contains a simple
+    message; subsequent requests should include the cookie automatically.
+    """
     token = createSessionToken(body.username)
 
     response.set_cookie(
@@ -28,6 +34,7 @@ def loginEndpoint(body: LoginRequest, response: Response):
 
 @authRouter.post("/logout")
 def logoutEndpoint(response: Response):
+    """Clear the session cookie and end the authenticated session."""
     response.delete_cookie(
         key=config.JWT_COOKIE_NAME,
         secure=config.JWT_COOKIE_SECURE,
@@ -39,4 +46,5 @@ def logoutEndpoint(response: Response):
 
 @authRouter.get("/me")
 def whoamiEndpoint(user: SessionPayload = Depends(getCurrentUser)):
+    """Return basic information about the current authenticated user."""
     return {"username": user.username, "session_id": user.session_id, "exp": user.exp}

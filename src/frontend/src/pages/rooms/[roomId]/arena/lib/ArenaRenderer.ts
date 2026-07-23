@@ -20,6 +20,12 @@ interface Particle {
     maxLife: number;
 }
 
+/**
+ * Immediate-mode renderer for the arena using Pixi.js.
+ *
+ * Call `syncState` on each tick with the latest authoritative state; the
+ * renderer will diff and redraw layers as needed.
+ */
 export class ArenaRenderer {
     private world: Container;
     private players: Map<string, PlayerView> = new Map();
@@ -65,6 +71,12 @@ export class ArenaRenderer {
         this.world.addChild(grid);
     }
 
+    /**
+     * Update the scene to reflect the latest authoritative state.
+     * @param state Latest state snapshot
+     * @param self_id Current player's id for camera/appearance
+     * @param localAimHeading Optional local aim for smooth rotation
+     */
     public syncState(state: ArenaState, self_id?: string, localAimHeading?: number) {
         this.selfId = self_id || null;
         if (state !== this.lastState) {

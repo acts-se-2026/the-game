@@ -186,6 +186,12 @@ class GameInfo:
 # - add players 
 # - do anything you want
 class State:
+    """Authoritative in-memory game state and logic.
+
+    Coordinates players, bullets, obstacles, and chests; advances state on a
+    fixed timestep via `step_frame()` and produces minimal diffs for clients.
+    """
+
     def __init__(self, obstacles=[]):
         self.current_frame = 0
         self.bullets = []
@@ -200,12 +206,14 @@ class State:
 
     # Creates a State that's ready to run a real game
     def init_populated(player_uuids: list[str]):
+        """Create a state with generated obstacles and placed players."""
         s = State(State.obstacle_generator())
         s.add_players_at_random_positions(player_uuids)
         return s
 
     # Generates obstacles in a box grid
     def obstacle_generator():
+        """Generate a valid obstacle layout on a coarse grid, avoiding blocked areas."""
         #--CREATES A MAP WITH RANDOM OBSTACLE POSITIONS--#    
         while True:
             obstacles = [] # list of Box class
@@ -326,16 +334,19 @@ class State:
 
     # Called from outside
     def get_level_info(self):
+        """Return initial one-time info required by clients."""
         return GameInfo(LEVEL_SIZE, self.obstacles)
 
     # Called from outside
     def set_player_movement_dir(self, player_uuid: str, direction: Vec2):
+        """Set normalized movement direction for the specified player."""
         for player in self.players:
             if player.uuid == player_uuid:
                 player.movement_dir = direction.normalized_or_zero()
 
     # Called from outside
     def set_player_rotation(self, player_uuid: str, rotation: float):
+        """Set player facing rotation in radians (0 = right)."""
         for player in self.players:
             if player.uuid == player_uuid:
                 player.rotation = rotation
@@ -348,7 +359,7 @@ class State:
 
     # Called from outside
     def try_shoot_player_bullet(self, player_uuid: str):
-        print(f"Player {player_uuid} is trying to shoot a bullet at frame {self.current_frame}")
+        """If the shooting cooldown passed, spawn a bullet from the player's cannon."""
         for player in self.players:
             if player.uuid == player_uuid and self.current_frame - player.last_shot_time > SHOOTING_DELAY:
                 direction = player.get_shooting_dir()
@@ -359,6 +370,7 @@ class State:
         
     # Called from outside
     def step_frame(self):
+        """Advance the simulation by one frame and return a `StateDiff`."""
         self.current_frame += 1
 
         for player in self.players:

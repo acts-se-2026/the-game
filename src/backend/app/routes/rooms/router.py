@@ -9,6 +9,7 @@ roomsRouter = APIRouter(prefix="/api/rooms", tags=["rooms"])
 
 @roomsRouter.get("")
 def getAllRooms():
+    """List all joinable rooms (not full and not currently running)."""
     returnRooms = []
 
     for room in connectionManager.rooms.values():
@@ -25,6 +26,10 @@ def getAllRooms():
 
 @roomsRouter.post("/create", dependencies=[Depends(getCurrentUser)])
 def createRoom():
+    """Create and return a new room identifier.
+
+    Requires a valid session via `getCurrentUser` dependency.
+    """
     while True:
         room_id = f"room-{uuid.uuid4().hex[:8]}"
 

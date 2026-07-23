@@ -6,7 +6,7 @@ from app.routes.ws import wsRouter
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-ShowDocs = True
+ShowDocs = True  # Enable interactive API docs in development
 
 app = FastAPI(
     docs_url="/api/docs" if ShowDocs else None,

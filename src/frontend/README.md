@@ -32,3 +32,6 @@ npm run test
 npm run lint
 npm run lint:fix
 ```
+
+#### Application Contexts
+- User/session and WebSocket connection are exposed via React Contexts.
