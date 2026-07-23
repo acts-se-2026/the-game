@@ -25,7 +25,14 @@ Production deployment: https://killordie.mooo.com
 #### Demo
 
 <div align="center">
-  <a href="https://github.com/user-attachments/assets/8cdfc81e-43c4-47b6-903f-459c6aecd959">Watch the demo video</a>
+  <video
+    src="https://github.com/user-attachments/assets/8cdfc81e-43c4-47b6-903f-459c6aecd959"
+    controls
+    playsinline
+    style="max-width: 100%; height: auto;"
+  >
+    Your browser does not support the video tag.
+  </video>
 </div>
 
 #### Repository Layout
