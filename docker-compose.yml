@@ -16,6 +16,7 @@ services:
     image: ghcr.io/acts-se-2026/the-game-backend:latest
     restart: unless-stopped
 
+    # Should use env not volume for production
     volumes:
       - .env.backend:/build/.env
   

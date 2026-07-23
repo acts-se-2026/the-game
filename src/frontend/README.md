@@ -1,14 +1,34 @@
-# Frontend
-## How to run
-### Setup .env
-- copy .env.example to .env and fill data about it
-### next
-1. install nodejs
-2. run inside src/frontend
-```bash
-npm install
+### Frontend — React + Vite + TypeScript
+
+The game client is built with React and Vite. Rendering uses Pixi.js and styles are managed with Tailwind CSS.
+
+#### Requirements
+- Node.js and npm
+
+#### Configuration
+Copy `.env.example` to `.env` and adjust values as needed:
 ```
-3. run dev server
-```bash
+VITE_WS_BASE_URL=ws://localhost:8000
+VITE_WS_PATH=/api/ws
+VITE_BACKEND_BASE_URL=http://localhost:8000
+```
+
+#### Install and run (development)
+```
+cd src/frontend
+npm install
 npm run dev
+```
+
+#### Build and preview
+```
+npm run build
+npm run preview
+```
+
+#### Tests and linting
+```
+npm run test
+npm run lint
+npm run lint:fix
 ```
