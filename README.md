@@ -94,8 +94,8 @@ npm run lint
 ```
 
 #### Documentation
-- Backend details: `src/backend/README.md`
-- Frontend details: `src/frontend/README.md`
+- Backend details: [src/backend/README.md](src/backend/README.md)
+- Frontend details: [src/frontend/README.md](src/frontend/README.md)
 
 **Keyboard and mouse are required to play.**
 
