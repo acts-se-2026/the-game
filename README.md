@@ -76,7 +76,6 @@ COOKIE_HTTP_ONLY=true
 COOKIE_SECURE=true
 FRONTEND_URL=https://your.domain
 ```
-Then start services with your orchestration of choice.
 
 #### Testing and Linting
 Backend
@@ -98,4 +97,7 @@ npm run lint
 - Backend details: `src/backend/README.md`
 - Frontend details: `src/frontend/README.md`
 
-** Keyboard and mouse are required to play. **
+**Keyboard and mouse are required to play.**
+
+### Postman REST API
+You can find the exported collection inside [The-Game.postman_collection.json](The-Game.postman_collection.json)
