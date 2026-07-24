@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import jwt
@@ -19,7 +19,7 @@ def createSessionToken(username: str) -> str:
     Returns:
         A JWT string suitable to be set as the session cookie value.
     """
-    expires_at = datetime.now(timezone.utc) + timedelta(
+    expires_at = datetime.now(UTC) + timedelta(
         hours=config.SESSION_DURATION_HOURS
     )
 

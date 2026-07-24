@@ -1,5 +1,4 @@
 import asyncio
-from typing import Dict
 
 from fastapi import WebSocket
 
@@ -16,7 +15,7 @@ class Room:
 
     def __init__(self, room_id: str):
         self.room_id: str = room_id
-        self.activeConnections: Dict[WebSocket, SessionPayload] = {}
+        self.activeConnections: dict[WebSocket, SessionPayload] = {}
         self.gameLoopTask: asyncio.Task | None = None
         self.isRunning: bool = False
         self.maxPlayers: int = 4

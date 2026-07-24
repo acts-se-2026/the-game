@@ -192,7 +192,10 @@ class State:
     fixed timestep via `step_frame()` and produces minimal diffs for clients.
     """
 
-    def __init__(self, obstacles=[]):
+    def __init__(self, obstacles=None):
+        if obstacles is None:
+            obstacles = []
+
         self.current_frame = 0
         self.bullets = []
         
@@ -217,7 +220,7 @@ class State:
         #--CREATES A MAP WITH RANDOM OBSTACLE POSITIONS--#    
         while True:
             obstacles = [] # list of Box class
-            obstacles_grid_pos = set() #position of each obsticle in grid: (0, 0) is top left (9, 9) would be bottom right
+            obstacles_grid_pos = set() #position of each obstacle in grid: (0, 0) is top left (9, 9) would be bottom right
 
             obstacle_cnt = random.randint(OBSTACLE_CNT_MIN, OBSTACLE_CNT_MAX)
             for i in range(obstacle_cnt):
@@ -245,16 +248,19 @@ class State:
         ]
 
         for dx, dy in diagonals:
-            if (x+dx, y+dy) in obstacles_grid_pos:
-                if (x+dx, y) not in obstacles_grid_pos and (x, y+dy) not in obstacles_grid_pos:
-                    return True
+            if (
+                (x + dx, y + dy) in obstacles_grid_pos
+                and (x + dx, y) not in obstacles_grid_pos
+                and (x, y + dy) not in obstacles_grid_pos
+            ):
+                return True
         
         return False
 
 
     
     def check_map_validity(obstacles_grid_pos):
-        #This checks whether any areas are seperated by obstacles using flood fill
+        #This checks whether any areas are separated by obstacles using flood fill
         visited = set()
         queue = []
 
@@ -275,25 +281,25 @@ class State:
         while queue:
             x, y = queue.pop(0)
 
-            neighbours = [
+            neighbors = [
                 (x+1, y), #right
                 (x-1, y), #left
                 (x, y+1), #down
                 (x, y-1) #up
             ]
 
-            for nx, ny in neighbours:
-                #is inside map
-                if 0 <= nx <= GRID_SIZE.x-1 and 0 <= ny <= GRID_SIZE.y-1:
-
-                    if (nx , ny) not in obstacles_grid_pos and (nx , ny) not in visited:
-                        visited.add((nx, ny))
-                        queue.append((nx, ny))
+            for nx, ny in neighbors:
+                if (
+                    0 <= nx <= GRID_SIZE.x - 1
+                    and 0 <= ny <= GRID_SIZE.y - 1
+                    and (nx, ny) not in obstacles_grid_pos
+                    and (nx, ny) not in visited
+                ):
+                    visited.add((nx, ny))
+                    queue.append((nx, ny))
 
         #All open grids have been filled
-        if len(visited) == GRID_SIZE.x*GRID_SIZE.y - len(obstacles_grid_pos):
-            return True
-        return False
+        return len(visited) == GRID_SIZE.x * GRID_SIZE.y - len(obstacles_grid_pos)
         
     def add_players_at_random_positions(self, player_uuids: list[str]):
         for uuid in player_uuids:

@@ -9,13 +9,13 @@ from game.vector import Vec2
 wsRouter = APIRouter(prefix="/api/ws", tags=["ws"])
 
 @wsRouter.websocket("/{roomId}")
-async def websocket_endpoint(websocket: WebSocket, user: SessionPayload = Depends(getCurrentUser), roomId: str = None):
-    """WebSocket endpoint for real-time game updates within a room.
-
-    Validates the user session and room capacity/state before accepting. Once
-    connected, the endpoint relays client input messages to the room's game
-    state and broadcasts diffs to all participants.
+async def websocket_endpoint(websocket: WebSocket, user: SessionPayload = Depends(getCurrentUser), roomId: str | None = None):
+    """ WebSocket endpoint for real-time game updates within a room.
+        Validates the user session and room capacity/state before accepting. Once
+        connected, the endpoint relays client input messages to the room's game
+        state and broadcasts diffs to all participants.
     """
+
     if not connectionManager.checkIfRoomExists(roomId) or len(connectionManager.rooms[roomId].activeConnections) >= connectionManager.rooms[roomId].maxPlayers:
         await websocket.close(code=1000)
         return
