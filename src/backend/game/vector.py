@@ -8,14 +8,14 @@ class Vec2:
     def __repr__(self):
         return f"Vec2{(self.x, self.y)}"
 
-    def __eq__(lhs, rhs):
-        return lhs.x == rhs.x and lhs.y == rhs.y
+    def __eq__(self, rhs):
+        return self.x == rhs.x and self.y == rhs.y
     
-    def __add__(lhs, rhs):
-        return Vec2(lhs.x + rhs.x, lhs.y + rhs.y)
+    def __add__(self, rhs):
+        return Vec2(self.x + rhs.x, self.y + rhs.y)
 
-    def __sub__(lhs, rhs):
-        return Vec2(lhs.x - rhs.x, lhs.y - rhs.y)
+    def __sub__(self, rhs):
+        return Vec2(self.x - rhs.x, self.y - rhs.y)
 
     def __mul__(self, scalar):
         return Vec2(self.x * scalar, self.y * scalar)

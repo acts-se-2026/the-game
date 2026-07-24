@@ -1,5 +1,4 @@
 import asyncio
-from typing import Dict
 
 from fastapi import WebSocket
 
@@ -7,10 +6,13 @@ from app.auth.types import SessionPayload
 from game.state import State
 
 
+class ConnectionException(Exception):
+    pass
+
 class Room:
     def __init__(self, room_id: str):
         self.room_id: str = room_id
-        self.activeConnections: Dict[WebSocket, SessionPayload] = {}
+        self.activeConnections: dict[WebSocket, SessionPayload] = {}
         self.gameLoopTask: asyncio.Task | None = None
         self.isRunning: bool = False
         self.maxPlayers: int = 4
@@ -22,7 +24,7 @@ class Room:
             return
         
         self.isRunning = True
-        self.gameState = State.init_populated([user.session_id for user in self.activeConnections.values()])
+        self.gameState = State([user.session_id for user in self.activeConnections.values()])
         self.gameLoopTask = asyncio.create_task(self.gameLoop())
 
         obstacles_data = [{"x": obs.pos.x, "y": obs.pos.y, "size": {"x": obs.size.x, "y": obs.size.y}} for obs in self.gameState.obstacles]
@@ -62,7 +64,7 @@ class Room:
 
     def connect(self, websocket: WebSocket, user: SessionPayload):
         if len(self.activeConnections) >= self.maxPlayers:
-            raise Exception("Room is full")
+            raise ConnectionException("Room is full")
         
         self.activeConnections[websocket] = user
         return True

@@ -1,20 +1,24 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
 from app.auth.auth import getCurrentUser
 from app.auth.types import SessionPayload
-from game.backendConnections import connectionManager
+from game.backendConnections import connection_manager
 from game.backendConnections.room import Room
 from game.vector import Vec2
 
 wsRouter = APIRouter(prefix="/api/ws", tags=["ws"])
 
+CurrentUser = Annotated[SessionPayload, Depends(getCurrentUser)]
+
 @wsRouter.websocket("/{roomId}")
-async def websocket_endpoint(websocket: WebSocket, user: SessionPayload = Depends(getCurrentUser), roomId: str = None):
-    if not connectionManager.checkIfRoomExists(roomId) or len(connectionManager.rooms[roomId].activeConnections) >= connectionManager.rooms[roomId].maxPlayers:
+async def websocket_endpoint(websocket: WebSocket, user: CurrentUser, room_id: str = ""):
+    if not connection_manager.checkIfRoomExists(room_id) or len(connection_manager.rooms[room_id].activeConnections) >= connection_manager.rooms[room_id].maxPlayers:
         await websocket.close(code=1000)
         return
 
-    room: Room = connectionManager.getOrCreateRoom(roomId)
+    room: Room = connection_manager.getOrCreateRoom(room_id)
     if room.isRunning:
         await websocket.close(code=1000)
         return
@@ -69,4 +73,4 @@ async def websocket_endpoint(websocket: WebSocket, user: SessionPayload = Depend
     except WebSocketDisconnect:
         room.disconnect(websocket)
         if len(room.activeConnections) == 0:
-            connectionManager.removeRoom(roomId)
+            connection_manager.removeRoom(room_id)

@@ -1,4 +1,3 @@
-
 from .room import Room
 
 
@@ -19,4 +18,4 @@ class ConnectionManager:
         if room_id in self.rooms and len(self.rooms[room_id].activeConnections) == 0:
             del self.rooms[room_id]
 
-connectionManager = ConnectionManager()
+connection_manager = ConnectionManager()

@@ -82,12 +82,11 @@ def test_kill_player_removed_on_next_frame():
 
 
 def test_get_level_info_contains_obstacles():
-    obstacles = [Box(Vec2(0, 0), Vec2(10, 10))]
-    state = State(obstacles)
-
+    state = State()
+    state.obstacles = [Box(Vec2(0, 0), Vec2(10, 10))]
     info = state.get_level_info()
 
-    assert info.obstacles is obstacles
+    assert info.obstacles is state.obstacles
     assert info.level_size.x == 1280
     assert info.level_size.y == 720
 

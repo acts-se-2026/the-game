@@ -88,7 +88,7 @@ class Player:
             "heading": self.rotation,
             "hp": self.hp,
         }
-        
+
 
 
 
@@ -142,51 +142,51 @@ class GameInfo:
 
 
 
+# Generates obstacles in a box grid
+def obstacle_generator():
+    #--CREATES A MAP WITH RANDOM OBSTACLE POSITIONS--#
+    while True:
+        obstacles = [] # list of Box class
+        obstacles_grid_pos = set() #position of each obsticle in grid: (0, 0) is top left (9, 9) would be bottom right
+
+        obstacle_cnt = random.randint(OBSTACLE_CNT_MIN, OBSTACLE_CNT_MAX)
+        for i in range(obstacle_cnt):
+            x = random.randint(0, GRID_SIZE.x-1)
+            y = random.randint(0, GRID_SIZE.y-1)
+
+            while (x, y) in obstacles_grid_pos or State.is_diagonal(x, y, obstacles_grid_pos):
+                x = random.randint(0, GRID_SIZE.x-1)
+                y = random.randint(0, GRID_SIZE.y-1)
+
+            obstacles_grid_pos.add((x, y))
+            obstacles.append(Box(Vec2(x*GRID_BOX_SIZE.x, y*GRID_BOX_SIZE.y), GRID_BOX_SIZE))
+
+        #--CHECKS IF AN AREA IS BLOCKED BY OBSTACLES--#
+        if State.check_map_validity(obstacles_grid_pos):
+            return obstacles
+
+
 # Lifetime:
 # - __init__ which sets up level data
-# - add players 
+# - add players
 # - do anything you want
 class State:
-    def __init__(self, obstacles=[]):
+    def __init__(self, player_uuids: list[str] | None = None):
+        self.obstacles = []
+        if len(player_uuids) > 0:
+            self.add_players_at_random_positions(player_uuids)
+            self.obstacles = obstacle_generator()
+
         self.current_frame = 0
         self.bullets = []
         
         self.unsent_bullet_ids = []
         
-        self.obstacles = obstacles
         self.chests = [] #List of HealthChest Class
         self.players = []
 
         self.next_chest_spawn = CHEST_SPAWN_DELAY #frame number
 
-    # Creates a State that's ready to run a real game
-    def init_populated(player_uuids: list[str]):
-        s = State(State.obstacle_generator())
-        s.add_players_at_random_positions(player_uuids)
-        return s
-
-    # Generates obstacles in a box grid
-    def obstacle_generator():
-        #--CREATES A MAP WITH RANDOM OBSTACLE POSITIONS--#    
-        while True:
-            obstacles = [] # list of Box class
-            obstacles_grid_pos = set() #position of each obsticle in grid: (0, 0) is top left (9, 9) would be bottom right
-
-            obstacle_cnt = random.randint(OBSTACLE_CNT_MIN, OBSTACLE_CNT_MAX)
-            for i in range(obstacle_cnt):
-                x = random.randint(0, GRID_SIZE.x-1)
-                y = random.randint(0, GRID_SIZE.y-1)
-
-                while (x, y) in obstacles_grid_pos or State.is_diagonal(x, y, obstacles_grid_pos):
-                    x = random.randint(0, GRID_SIZE.x-1)
-                    y = random.randint(0, GRID_SIZE.y-1)
-                
-                obstacles_grid_pos.add((x, y))
-                obstacles.append(Box(Vec2(x*GRID_BOX_SIZE.x, y*GRID_BOX_SIZE.y), GRID_BOX_SIZE))
-
-            #--CHECKS IF AN AREA IS BLOCKED BY OBSTACLES--#
-            if State.check_map_validity(obstacles_grid_pos):
-                return obstacles
 
     def is_diagonal(x, y, obstacles_grid_pos):
         #This checks if (x, y) obstacle is connected ONLY diagonally with another obstacle
@@ -198,8 +198,9 @@ class State:
         ]
 
         for dx, dy in diagonals:
-            if (x+dx, y+dy) in obstacles_grid_pos:
-                if (x+dx, y) not in obstacles_grid_pos and (x, y+dy) not in obstacles_grid_pos:
+            if ((x+dx, y+dy) in obstacles_grid_pos and
+                (x+dx, y) not in obstacles_grid_pos and
+                (x, y+dy) not in obstacles_grid_pos):
                     return True
         
         return False
@@ -237,17 +238,14 @@ class State:
 
             for nx, ny in neighbours:
                 #is inside map
-                if 0 <= nx <= GRID_SIZE.x-1 and 0 <= ny <= GRID_SIZE.y-1:
-
-                    if (nx , ny) not in obstacles_grid_pos and (nx , ny) not in visited:
+                if (0 <= nx <= GRID_SIZE.x-1 and 0 <= ny <= GRID_SIZE.y-1 and
+                        (nx , ny) not in obstacles_grid_pos and (nx , ny) not in visited):
                         visited.add((nx, ny))
                         queue.append((nx, ny))
 
         #All open grids have been filled
-        if len(visited) == GRID_SIZE.x*GRID_SIZE.y - len(obstacles_grid_pos):
-            return True
-        return False
-        
+        return len(visited) == GRID_SIZE.x*GRID_SIZE.y - len(obstacles_grid_pos)
+
     def add_players_at_random_positions(self, player_uuids: list[str]):
         for uuid in player_uuids:
             player = Player(uuid, Vec2.ZERO)
