@@ -9,7 +9,7 @@ from game.vector import Vec2
 wsRouter = APIRouter(prefix="/api/ws", tags=["ws"])
 
 @wsRouter.websocket("/{roomId}")
-async def websocket_endpoint(websocket: WebSocket, user: SessionPayload = Depends(getCurrentUser), roomId: str = None):
+async def websocket_endpoint(websocket: WebSocket, user: SessionPayload = Depends(getCurrentUser), roomId: str | None = None):
     if not connectionManager.checkIfRoomExists(roomId) or len(connectionManager.rooms[roomId].activeConnections) >= connectionManager.rooms[roomId].maxPlayers:
         await websocket.close(code=1000)
         return
