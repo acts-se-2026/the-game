@@ -186,7 +186,10 @@ class GameInfo:
 # - add players 
 # - do anything you want
 class State:
-    def __init__(self, obstacles=[]):
+    def __init__(self, obstacles=None):
+        if obstacles is None:
+            obstacles = []
+
         self.current_frame = 0
         self.bullets = []
         
@@ -237,9 +240,12 @@ class State:
         ]
 
         for dx, dy in diagonals:
-            if (x+dx, y+dy) in obstacles_grid_pos:
-                if (x+dx, y) not in obstacles_grid_pos and (x, y+dy) not in obstacles_grid_pos:
-                    return True
+            if (
+                (x + dx, y + dy) in obstacles_grid_pos
+                and (x + dx, y) not in obstacles_grid_pos
+                and (x, y + dy) not in obstacles_grid_pos
+            ):
+                return True
         
         return False
 
@@ -275,17 +281,17 @@ class State:
             ]
 
             for nx, ny in neighbours:
-                #is inside map
-                if 0 <= nx <= GRID_SIZE.x-1 and 0 <= ny <= GRID_SIZE.y-1:
-
-                    if (nx , ny) not in obstacles_grid_pos and (nx , ny) not in visited:
-                        visited.add((nx, ny))
-                        queue.append((nx, ny))
+                if (
+                    0 <= nx <= GRID_SIZE.x - 1
+                    and 0 <= ny <= GRID_SIZE.y - 1
+                    and (nx, ny) not in obstacles_grid_pos
+                    and (nx, ny) not in visited
+                ):
+                    visited.add((nx, ny))
+                    queue.append((nx, ny))
 
         #All open grids have been filled
-        if len(visited) == GRID_SIZE.x*GRID_SIZE.y - len(obstacles_grid_pos):
-            return True
-        return False
+        return len(visited) == GRID_SIZE.x * GRID_SIZE.y - len(obstacles_grid_pos)
         
     def add_players_at_random_positions(self, player_uuids: list[str]):
         for uuid in player_uuids:

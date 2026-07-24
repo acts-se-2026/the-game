@@ -3,8 +3,8 @@ from .jwt import createSessionToken, decodeSessionToken
 from .types import SessionPayload
 
 __all__ = [
-    "getCurrentUser",
+    "SessionPayload",
     "createSessionToken",
     "decodeSessionToken",
-    "SessionPayload",
+    "getCurrentUser",
 ]

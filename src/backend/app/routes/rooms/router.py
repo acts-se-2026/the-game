@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends
 
 from app.auth.auth import getCurrentUser
-from game.backendConnections.connectionManager import connectionManager
+from game.backendConnections.connection_manager import connectionManager
 
 roomsRouter = APIRouter(prefix="/api/rooms", tags=["rooms"])
 
