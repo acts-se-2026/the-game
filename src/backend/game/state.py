@@ -173,7 +173,7 @@ def obstacle_generator():
 class State:
     def __init__(self, player_uuids: list[str] | None = None):
         self.obstacles = []
-        if len(player_uuids) > 0:
+        if player_uuids:
             self.add_players_at_random_positions(player_uuids)
             self.obstacles = obstacle_generator()
 
