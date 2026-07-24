@@ -6,7 +6,7 @@ from app.routes.auth import authRouter
 from app.routes.rooms import roomsRouter
 from app.routes.ws import wsRouter
 
-ShowDocs = True
+ShowDocs = True  # Enable interactive API docs in developments
 
 app = FastAPI(
     docs_url="/api/docs" if ShowDocs else None,

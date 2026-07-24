@@ -1,10 +1,10 @@
-// this is when we dont know what type of packet we are receiving and dont know how data looks yet
+/** Generic interface when the packet `type` is unknown at compile time. */
 export interface WsUnknownPacket {
     type: string;
     data?: unknown;
 }
 
-// Known Packets (for now this is example packet)
+/** Packet sent by server to update the current list of players in a room. */
 export interface PlayerListUpdatePacket {
     type: "user_list";
     data: {
@@ -15,6 +15,7 @@ export interface PlayerListUpdatePacket {
     }
 }
 
+/** Packet sent by server to update the current state of the arena. */
 export interface GameStartPacket {
     type: "game_start";
     data: {

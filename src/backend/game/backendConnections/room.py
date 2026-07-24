@@ -7,6 +7,12 @@ from game.state import State
 
 
 class Room:
+    """Represents a single game lobby/room and its running game loop.
+
+    Manages websocket connections, launches the game loop when started, and
+    broadcasts state diffs to all connected clients.
+    """
+
     def __init__(self, room_id: str):
         self.room_id: str = room_id
         self.activeConnections: dict[WebSocket, SessionPayload] = {}
@@ -17,6 +23,7 @@ class Room:
         self.gameState = None
 
     def startGame(self):
+        """Initialize game state and start the async game loop if not already running."""
         if self.isRunning:
             return
         
@@ -34,6 +41,7 @@ class Room:
         }}))
 
     def stopGame(self):
+        """Stop the running game and clean up loop/task/state."""
         if not self.isRunning:
             return
         
@@ -44,6 +52,7 @@ class Room:
         self.gameState = None
     
     async def gameLoop(self):
+        """Fixed-timestep loop that advances the game state and broadcasts diffs."""
         tick_rate = 1 / 30  # 30 ticks per second
         while self.isRunning:
             changes = self.gameState.step_frame()
@@ -51,6 +60,7 @@ class Room:
             await asyncio.sleep(tick_rate)
     
     def getAllPlayers(self):
+        """Return the current player list for the room."""
         players = []
         for user in self.activeConnections.values():
             players.append({
@@ -60,6 +70,7 @@ class Room:
         return {"players": players}
 
     def connect(self, websocket: WebSocket, user: SessionPayload):
+        """Register a websocket/user in the room or raise if full."""
         if len(self.activeConnections) >= self.maxPlayers:
             raise Exception("Room is full")
         
@@ -67,6 +78,7 @@ class Room:
         return True
     
     def disconnect(self, websocket: WebSocket):
+        """Remove a websocket from the room. End game if room becomes empty."""
         if websocket in self.activeConnections:
             user = self.activeConnections[websocket]
             if self.isRunning and self.gameState is not None:
@@ -79,6 +91,7 @@ class Room:
             self.stopGame()
     
     async def broadcast(self, message: dict):
+        """Send a JSON message to all active connections (fire-and-forget)."""
         if not self.activeConnections:
             return
         

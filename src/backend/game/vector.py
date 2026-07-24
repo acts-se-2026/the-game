@@ -2,6 +2,8 @@ import math
 
 
 class Vec2:
+    """Simple 2D vector helper used for game math and geometry."""
+
     def __init__(self, x, y):
         self.x, self.y = x, y
 
@@ -42,6 +44,7 @@ class Vec2:
         return self / self.length()
 
     def normalized_or_zero(self):
+        """Return normalized vector or `Vec2.ZERO` when length is 0."""
         length = self.length()
         if length == 0:
             return Vec2.ZERO

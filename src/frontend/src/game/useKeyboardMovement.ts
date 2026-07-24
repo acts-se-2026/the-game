@@ -33,7 +33,10 @@ function getMovement(pressedKeys: Set<string>): MovementInput {
     return { x: x / length, y: y / length };
 }
 
-/** Tracks WASD and arrow keys */
+/**
+ * Tracks WASD and arrow keys and returns a normalized movement vector.
+ * Returns `{x:0,y:0}` when no movement keys are pressed.
+ */
 export function useKeyboardMovement(): MovementInput {
     const [movement, setMovement] = useState<MovementInput>({ x: 0, y: 0 });
 

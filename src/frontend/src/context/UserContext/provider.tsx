@@ -3,10 +3,15 @@ import { backendApi } from "../../api/backend";
 import type { UserSession } from "./types";
 import { UserContext } from "./context";
 
+/**
+ * Provides the authenticated user session for the app and helpers to login/logout.
+ * Fetches `/api/auth/me` on mount to restore a session from cookies.
+ */
 export function UserContextProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<UserSession | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    /** Load current session info if the backend cookie is present. */
     const checkAuthStatus = async () => {
         try {
             const response = await backendApi.get<UserSession>("/api/auth/me");
@@ -25,6 +30,7 @@ export function UserContextProvider({ children }: { children: ReactNode }) {
         initAuth();
     }, []);
 
+    /** Create a new session for the provided username and refresh context state. */
     const login = async (username: string) => {
         setIsLoading(true);
         try {
@@ -36,6 +42,7 @@ export function UserContextProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    /** End the current session and clear local user state regardless of server errors. */
     const logout = async () => {
         setIsLoading(true);
         try {

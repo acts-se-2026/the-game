@@ -7,10 +7,22 @@ interface ProviderProps {
     children: ReactNode;
 }
 
+/**
+ * Provides a shared WebSocket connection and helper methods to the app.
+ *
+ * Typical usage:
+ * ```tsx
+ * <WsConnectionProvider>
+ *   <App />
+ * </WsConnectionProvider>
+ * ```
+ * Consume with `useWsConnection()` to connect, send messages, and observe state.
+ */
 export function WsConnectionProvider({ children }: ProviderProps) {
     const socketRef = useRef<WebSocket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
 
+    /** Open a WebSocket at `VITE_WS_BASE_URL + path`. */
     const connectWs = useCallback((path: string) => {
         if (socketRef.current && (socketRef.current.readyState === WebSocket.OPEN || socketRef.current.readyState === WebSocket.CONNECTING)) {
             console.warn("WebSocket is already active or connecting.");
@@ -41,6 +53,7 @@ export function WsConnectionProvider({ children }: ProviderProps) {
         socketRef.current = ws;
     }, []);
 
+    /** Close the socket and reset flags. Safe to call when already closed. */
     const disconnectWs = useCallback(() => {
         const currentSocket = socketRef.current;
 
@@ -59,6 +72,7 @@ export function WsConnectionProvider({ children }: ProviderProps) {
         };
     }, []);
 
+    /** Send a JSON packet `{ type, data? }` to the server if the socket is open. */
     const sendMessage = useCallback((type: string, data?: unknown) => {
         const ws = socketRef.current;
 
@@ -76,3 +90,6 @@ export function WsConnectionProvider({ children }: ProviderProps) {
         </WsConnectionContext.Provider>
     );
 }
+
+// Add message listener using `useEffect` + currentSocket.addEventListener("message", handleIncomingPacket); 
+// look at src/frontend/src/game/useGameState.ts for example of how to do this.

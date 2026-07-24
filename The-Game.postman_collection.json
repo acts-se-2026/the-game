@@ -1,0 +1,121 @@
+{
+  "info": {
+    "name": "The-Game-Rest-API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "login",
+      "item": [
+        {
+          "name": "login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"Test-User\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BACKEND_URL}}/api/auth/login",
+              "host": [
+                "{{BACKEND_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BACKEND_URL}}/api/auth/logout",
+              "host": [
+                "{{BACKEND_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BACKEND_URL}}/api/auth/me",
+              "host": [
+                "{{BACKEND_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "rooms",
+      "item": [
+        {
+          "name": "getRooms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BACKEND_URL}}/api/rooms",
+              "host": [
+                "{{BACKEND_URL}}"
+              ],
+              "path": [
+                "api",
+                "rooms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "createRoom",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BACKEND_URL}}/api/rooms/create",
+              "host": [
+                "{{BACKEND_URL}}"
+              ],
+              "path": [
+                "api",
+                "rooms",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
